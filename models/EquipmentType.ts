@@ -1,13 +1,19 @@
-import mongoose, { Schema, model, models } from 'mongoose';
-import { EquipmentType } from '@/types/equipment-types';
+import mongoose, { Schema, Document, Model } from 'mongoose';
+import { systemSchema } from './System';
 
-const equipmentTypeSchema = new Schema<EquipmentType>({
-  id: { type: String, required: true, unique: true },
+export interface IEquipmentType extends Document {
+  name: string;
+  description?: string;
+  equipmentClassId: Schema.Types.ObjectId;
+  systems: any[];
+}
+
+const equipmentTypeSchema = new Schema<IEquipmentType>({
   name: { type: String, required: true },
-  description: String,
-  equipmentClassId: { type: String, required: true },
-  systems: { type: Array, default: [] },
+  description: { type: String },
+  equipmentClassId: { type: Schema.Types.ObjectId, ref: 'EquipmentClass', required: true },
+  systems: { type: [Object], default: [] },
 });
 
-const EquipmentTypeModel = models.EquipmentType || model<EquipmentType>('EquipmentType', equipmentTypeSchema);
-export default EquipmentTypeModel; 
+const EquipmentType: Model<IEquipmentType> = mongoose.models.EquipmentType || mongoose.model<IEquipmentType>('EquipmentType', equipmentTypeSchema);
+export default EquipmentType; 

@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     const userObj = user.toObject();
-    delete userObj.password;
+    delete (userObj as { password?: string }).password;
     return NextResponse.json(userObj, { status: 200 });
   } catch (error) {
     const { status, body } = handleApiError(error, 'Profile Update');

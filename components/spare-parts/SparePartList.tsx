@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -89,7 +89,7 @@ const SparePartList: React.FC = () => {
       ];
       setSpareParts(mockData);
     } catch (error) {
-      toast.error('Failed to load spare parts');
+      toast.error({ title: 'Error', description: 'Failed to load spare parts' });
     } finally {
       setLoading(false);
     }
@@ -100,9 +100,9 @@ const SparePartList: React.FC = () => {
       // Mock API call - replace with actual implementation
       await new Promise(resolve => setTimeout(resolve, 500));
       setSpareParts(prev => prev.filter(item => item.id !== id));
-      toast.success('Spare part deleted successfully');
+      toast.success({ title: 'Success', description: 'Spare part deleted successfully' });
     } catch (error) {
-      toast.error('Failed to delete spare part');
+      toast.error({ title: 'Error', description: 'Failed to delete spare part' });
     }
   };
 

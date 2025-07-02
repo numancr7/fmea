@@ -1,15 +1,16 @@
+import * as React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "../components/ui/sonner";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
-import Footer from "@/components/layout/Footer";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+
 import { Suspense } from "react";
 import Providers from "@/components/Providers";
 import ClientLayout from "@/components/layout/ClientLayout";
+import Error from './error';
+import ErrorBoundary from "@/components/layout/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,9 @@ export default function RootLayout({
             <Sonner />
             <ClientLayout>
               <Suspense fallback={<div>Loading...</div>}>
-                {children}
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
               </Suspense>
             </ClientLayout>
           </Providers>

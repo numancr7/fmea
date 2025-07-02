@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 interface Manufacturer {
   id: string;
@@ -47,45 +47,44 @@ const ManufacturerForm: React.FC<ManufacturerFormProps> = ({ manufacturerId }) =
 
   const loadManufacturer = async () => {
     try {
-      // Mock data - replace with actual API call
-      const mockData: Manufacturer = {
-        id: manufacturerId!,
-        name: 'Sample Manufacturer',
-        description: 'Sample manufacturer description',
-        contactPerson: 'John Doe',
-        email: 'john@sample.com',
-        phone: '+1-555-0123',
-        address: '123 Industrial Ave, City, State 12345',
-        website: 'https://sample.com',
-        specialties: ['Industrial Pumps', 'Conveyor Systems']
-      };
+      const res = await fetch(`/api/manufacturers/${manufacturerId}`);
+      if (!res.ok) throw new Error('Failed to load manufacturer');
+      const data = await res.json();
       setFormData({
-        name: mockData.name,
-        description: mockData.description,
-        contactPerson: mockData.contactPerson,
-        email: mockData.email,
-        phone: mockData.phone,
-        address: mockData.address,
-        website: mockData.website,
-        specialties: mockData.specialties.join(', ')
+        name: data.name || '',
+        description: data.description || '',
+        contactPerson: data.contactPerson || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        website: data.website || '',
+        specialties: Array.isArray(data.specialties) ? data.specialties.join(', ') : ''
       });
     } catch (error) {
-      toast.error('Failed to load manufacturer');
+      toast.error({ title: 'Error', description: 'Failed to load manufacturer' });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Mock API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success(manufacturerId ? 'Manufacturer updated successfully' : 'Manufacturer created successfully');
+      const method = manufacturerId ? 'PATCH' : 'POST';
+      const url = manufacturerId ? `/api/manufacturers/${manufacturerId}` : '/api/manufacturers';
+      const payload = {
+        ...formData,
+        specialties: formData.specialties.split(',').map(s => s.trim()).filter(Boolean)
+      };
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed to save manufacturer');
+      toast.success({ title: 'Success', description: manufacturerId ? 'Manufacturer updated successfully' : 'Manufacturer created successfully' });
       router.push('/manufacturers');
     } catch (error) {
-      toast.error('Failed to save manufacturer');
+      toast.error({ title: 'Error', description: 'Failed to save manufacturer' });
     } finally {
       setLoading(false);
     }

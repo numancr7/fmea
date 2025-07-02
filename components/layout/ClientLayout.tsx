@@ -9,6 +9,7 @@ import Footer from './Footer';
 import { Button } from "@/components/ui/button";
 import { PanelLeft } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { toast } from '@/hooks/use-toast';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -59,6 +60,10 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     }
   }, [timedOut, status]);
 
+  useEffect(() => {
+    // Remove emailVerified check and redirect logic
+  }, [isAuthenticated, isPublicRoute, session, router]);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -72,12 +77,8 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   // For public routes, show a simple layout without sidebar
   if (isPublicRoute) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar onMenuClick={toggleSidebar} />
-        <main className="flex-1 pt-20 flex items-center justify-center">
-            {children}
-        </main>
-        <Footer />
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8 max-w-none">
+        {children}
       </div>
     );
   }
@@ -85,9 +86,9 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   // For authenticated users, show full layout with sidebar
   if (shouldShowSidebar) {
     return (
-      <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="min-h-screen bg-background overflow-x-hidden flex flex-col">
         <Navbar onMenuClick={toggleSidebar} isSidebarOpen={sidebarOpen} />
-        <div className="flex relative">
+        <div className="flex relative flex-1">
           {/* Sidebar (desktop) */}
           {!isMobile && sidebarOpen && (
             <div className="fixed top-0 left-0 z-30 w-64 pt-16 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-lg">
@@ -107,20 +108,21 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             "flex-1 p-6 transition-all duration-300 ease-in-out min-w-0 pt-16",
             !isMobile && sidebarOpen ? "ml-64" : "ml-0"
           )}>
-            <div className="mb-4">
+            <div className="m-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleSidebar}
                 className="md:inline-flex hidden"
               >
-                <PanelLeft className="h-4 w-4 mr-2" />
+                <PanelLeft className="h-4 w-4  mr-2" />
                 {sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
               </Button>
             </div>
             {children}
           </main>
         </div>
+        <Footer />
       </div>
     );
   }

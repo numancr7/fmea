@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,11 +22,11 @@ import {
 
 interface EquipmentType {
   id: string;
+  _id?: string;
   name: string;
-  description: string;
-  category: string;
-  specifications: string;
-  createdAt: string;
+  description?: string;
+  equipmentClassId: string | { _id: string; name: string };
+  systems: any[];
 }
 
 const EquipmentTypeList: React.FC = () => {
@@ -40,36 +40,12 @@ const EquipmentTypeList: React.FC = () => {
 
   const loadEquipmentTypes = async () => {
     try {
-      // Mock data - replace with actual API call
-      const mockData: EquipmentType[] = [
-        {
-          id: '1',
-          name: 'Industrial Pump',
-          description: 'High-performance industrial pump for heavy-duty applications',
-          category: 'Industrial',
-          specifications: 'Flow rate: 1000 L/min, Pressure: 50 bar',
-          createdAt: '2024-01-15'
-        },
-        {
-          id: '2',
-          name: 'Conveyor Belt',
-          description: 'Automated conveyor system for material handling',
-          category: 'Manufacturing',
-          specifications: 'Length: 50m, Speed: 2 m/s, Load capacity: 500kg',
-          createdAt: '2024-01-20'
-        },
-        {
-          id: '3',
-          name: 'HVAC System',
-          description: 'Heating, ventilation, and air conditioning system',
-          category: 'Building',
-          specifications: 'Cooling capacity: 10kW, Heating capacity: 12kW',
-          createdAt: '2024-01-25'
-        }
-      ];
-      setEquipmentTypes(mockData);
+      const res = await fetch('/api/equipment-types');
+      if (!res.ok) throw new Error('Failed to fetch equipment types');
+      const data = await res.json();
+      setEquipmentTypes(data);
     } catch (error) {
-      toast.error('Failed to load equipment types');
+      toast({ title: 'Error', description: 'Failed to load equipment types' });
     } finally {
       setLoading(false);
     }
@@ -77,12 +53,12 @@ const EquipmentTypeList: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      // Mock API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const res = await fetch(`/api/equipment-types/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to delete equipment type');
       setEquipmentTypes(prev => prev.filter(item => item.id !== id));
-      toast.success('Equipment type deleted successfully');
+      toast({ title: 'Success', description: 'Equipment type deleted successfully' });
     } catch (error) {
-      toast.error('Failed to delete equipment type');
+      toast({ title: 'Error', description: 'Failed to delete equipment type' });
     }
   };
 
@@ -108,17 +84,21 @@ const EquipmentTypeList: React.FC = () => {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {equipmentTypes.map((equipmentType) => (
-          <Card key={equipmentType.id} className="hover:shadow-lg transition-shadow">
+          <Card key={equipmentType._id || equipmentType.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-lg">{equipmentType.name}</CardTitle>
-                  <Badge variant="secondary" className="mt-2">
-                    {equipmentType.category}
-                  </Badge>
+                  <p className="text-xs text-gray-500 mt-1">ID: {equipmentType._id || equipmentType.id}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Equipment Class: {typeof equipmentType.equipmentClassId === 'object' && equipmentType.equipmentClassId !== null
+                      ? equipmentType.equipmentClassId.name
+                      : equipmentType.equipmentClassId}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Systems: {equipmentType.systems?.length ?? 0}</p>
                 </div>
                 <div className="flex space-x-2">
-                  <Link href={`/equipment-types/${equipmentType.id}/edit`}>
+                  <Link href={`/equipment-types/${equipmentType._id || equipmentType.id}/edit`}>
                     <Button variant="outline" size="sm">
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -139,7 +119,7 @@ const EquipmentTypeList: React.FC = () => {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(equipmentType.id)}
+                          onClick={() => handleDelete(equipmentType._id || equipmentType.id)}
                           className="bg-red-600 hover:bg-red-700"
                         >
                           Delete
@@ -152,12 +132,8 @@ const EquipmentTypeList: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-3">
-                {equipmentType.description}
+                {equipmentType.description || 'No description provided'}
               </p>
-              <div className="text-xs text-gray-500">
-                <p><strong>Specifications:</strong> {equipmentType.specifications}</p>
-                <p className="mt-1">Created: {equipmentType.createdAt}</p>
-              </div>
             </CardContent>
           </Card>
         ))}

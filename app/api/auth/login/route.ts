@@ -4,12 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { handleApiError } from '@/lib/utils';
 import { z } from "zod";
+import jwt from 'jsonwebtoken';
 
 // Zod schema for user login
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
+
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,11 +48,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Do not return password to frontend
-    const userWithoutPassword = user.toObject();
-    delete userWithoutPassword.password;
+    // Create JWT
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
-    return NextResponse.json(userWithoutPassword, { status: 200 });
+    return NextResponse.json({ token });
   } catch (error) {
     const { status, body } = handleApiError(error, 'User Login');
     return NextResponse.json(body, { status });

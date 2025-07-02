@@ -1,12 +1,12 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export interface IUser {
-  name?: string;
+export interface IUser extends Document {
+  name: string;
   email: string;
-  emailVerified?: Date | null;
+  emailVerified?: boolean;
   password: string;
-  role: 'admin' | 'user';
+  role: 'user' | 'admin';
   phone?: string;
   address?: string;
   avatar?: {
@@ -17,21 +17,21 @@ export interface IUser {
   verificationTokenExpiry?: Date | null;
   resetPasswordToken?: string | null;
   resetPasswordTokenExpiry?: Date | null;
-  createdAt?: Date;
-  updatedAt?: Date;
+  team?: mongoose.Types.ObjectId;
+  otp?: string | null;
+  otpExpiry?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  comparePassword(candidate: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
   {
-    name: { type: String, trim: true }, // Optional name field
-    email: { type: String, required: true, unique: true },
-    emailVerified: { type: Date, default: null }, // For NextAuth
-    password: { type: String, required: true },
-    role: {
-      type: String,
-      enum: ['admin', 'user'],
-      default: 'user',
-    },
+    name: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    emailVerified: { type: Boolean, default: false }, // Changed from Date to Boolean
+    password: { type: String, required: true, minlength: 6 },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     phone: { type: String, default: null },
     address: { type: String, default: null },
     avatar: {
@@ -42,17 +42,22 @@ const userSchema = new Schema<IUser>(
     verificationTokenExpiry: { type: Date, default: null },
     resetPasswordToken: { type: String, default: null },
     resetPasswordTokenExpiry: { type: Date, default: null },
+    team: { type: Schema.Types.ObjectId, ref: 'Team' },
+    otp: { type: String, default: null },
+    otpExpiry: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
-// Hash password before saving (only if modified)
 userSchema.pre('save', async function (next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-const User = models?.User || model<IUser>('User', userSchema);
+userSchema.methods.comparePassword = function (candidate: string) {
+  return bcrypt.compare(candidate, this.password);
+};
+
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 export default User;

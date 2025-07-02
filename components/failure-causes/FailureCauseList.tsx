@@ -46,7 +46,7 @@ const FailureCauseList: React.FC = () => {
     if (itemToDelete) {
       const itemName = causeList.find(c => c.id === itemToDelete)?.name || 'Failure Cause';
       setCauseList(causeList.filter(item => item.id !== itemToDelete));
-      toast.success(`${itemName} has been deleted successfully`);
+      toast.success({ title: 'Success', description: `${itemName} has been deleted successfully` });
       setShowDeleteDialog(false);
       setItemToDelete(null);
     }

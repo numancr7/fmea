@@ -3,7 +3,6 @@ import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import { handleApiError } from '@/lib/utils';
 import { z } from 'zod';
-import bcrypt from 'bcryptjs';
 
 const resetPasswordSchema = z.object({
   token: z.string().min(1, "Token is required"),

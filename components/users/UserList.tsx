@@ -1,25 +1,32 @@
 "use client";
 
-import React from "react";
+import useSWR from "swr";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Trash2 } from "lucide-react";
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { toast } from "@/hooks/use-toast";
 
-const mockUsers = [
-  { id: "1", name: "Alice", email: "alice@example.com", role: "admin" },
-  { id: "2", name: "Bob", email: "bob@example.com", role: "user" },
-  { id: "3", name: "Charlie", email: "charlie@example.com", role: "editor" },
-];
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-const UserList: React.FC = () => {
+export default function UserList() {
+  const { data, error, isLoading } = useSWR("/api/users", fetcher);
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'admin';
+
+  if (isLoading) return <div>Loading users...</div>;
+  if (error) return <div className="text-red-500">Failed to load users</div>;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Users Management</h1>
-        <Button>
-          Add User
-        </Button>
+        {isAdmin && (
+          <Button asChild>
+            <Link href="/users/new">Add User</Link>
+          </Button>
+        )}
       </div>
       <Card>
         <CardHeader>
@@ -32,33 +39,59 @@ const UserList: React.FC = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Team</TableHead>
+                {isAdmin && <TableHead>Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+              {data && data.length > 0 ? (
+                data.map((user: any) => (
+                  <TableRow key={user._id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>{user.team?.name || "—"}</TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/users/${user._id}/edit`}>Edit</Link>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="ml-2"
+                          onClick={async () => {
+                            if (!window.confirm('Are you sure you want to delete this user?')) return;
+                            if (!isAdmin) {
+                              toast({ title: 'Permission Denied', description: 'You must be an admin to delete users.' });
+                              return;
+                            }
+                            try {
+                              const res = await fetch(`/api/users/${user._id}`, { method: 'DELETE' });
+                              if (!res.ok) throw new Error('Failed to delete user');
+                              toast({ title: 'Success', description: 'User deleted' });
+                              // Optionally, trigger a re-fetch or update UI
+                              window.location.reload();
+                            } catch (error) {
+                              toast({ title: 'Error', description: 'Failed to delete user' });
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 5 : 4} className="text-center">No users found</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default UserList; 
+} 

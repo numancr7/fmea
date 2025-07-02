@@ -26,6 +26,38 @@ export async function POST(req: NextRequest) {
     await connectToDatabase();
     const body = await req.json();
 
+    // If only email is provided, treat as resend verification
+    if (body.email && Object.keys(body).length === 1) {
+      const existingUser = await User.findOne({ email: body.email });
+      if (!existingUser) {
+        return NextResponse.json({ error: "No user found with this email." }, { status: 404 });
+      }
+      if (existingUser.emailVerified) {
+        return NextResponse.json({ error: "Email is already verified." }, { status: 400 });
+      }
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationTokenExpiry = new Date(Date.now() + 3600000); // 1 hour expiry
+
+      existingUser.verificationToken = verificationToken;
+      existingUser.verificationTokenExpiry = verificationTokenExpiry;
+      await existingUser.save();
+
+      const verificationLink = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${verificationToken}`;
+      const emailHtml = `
+        <h1>Welcome to FMEA Management System!</h1>
+        <p>Please verify your email address by clicking the link below:</p>
+        <p><a href="${verificationLink}">Verify Email</a></p>
+        <p>This link will expire in 1 hour.</p>
+      `;
+
+      await sendEmail({
+        to: body.email,
+        subject: 'Verify Your Email Address - FMEA System',
+        html: emailHtml,
+      });
+      return NextResponse.json({ message: 'Verification email re-sent.' }, { status: 200 });
+    }
+
     // Validate the request body using the Zod schema
     const validationResult = registerSchema.safeParse(body);
 
@@ -97,6 +129,7 @@ export async function POST(req: NextRequest) {
       ...(avatarObj ? { avatar: avatarObj } : {}),
       verificationToken,
       verificationTokenExpiry,
+      emailVerified: false,
     });
 
     const verificationLink = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${verificationToken}`;
@@ -114,7 +147,7 @@ export async function POST(req: NextRequest) {
     });
 
     const userWithoutPassword = newUser.toObject();
-    delete userWithoutPassword.password;
+    userWithoutPassword.password = '';
 
     return NextResponse.json({ ...userWithoutPassword, message: "User registered successfully. Verification email sent." }, { status: 201 });
   } catch (error) {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Settings, AlertTriangle, Wrench, Shield, BarChart3, Users, Database, Box } from 'lucide-react';
+import {Shield, BarChart3, Users, Database } from 'lucide-react';
 import RiskMatrix from '@/components/dashboard/RiskMatrix';
 import FailureModeSummary from '@/components/dashboard/FailureModeSummary';
 import HighRiskItems from '@/components/dashboard/HighRiskItems';

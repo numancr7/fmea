@@ -24,6 +24,20 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No user found with this email");
         }
 
+        // Allow OTP login if password is 'otp' and user is verified
+        if (credentials.password === 'otp') {
+          if (user.emailVerified) {
+            return {
+              id: (user as any)._id.toString(),
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            };
+          } else {
+            throw new Error("Email not verified");
+          }
+        }
+
         const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
@@ -32,7 +46,7 @@ export const authOptions: NextAuthOptions = {
 
         // Return fields to be stored in token
         return {
-          id: user._id.toString(),
+          id: (user as any)._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role,
@@ -48,6 +62,10 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.name = user.name;
         token.role = user.role;
+        token.email = user.email;
+        // Fetch emailVerified from DB as boolean
+        const dbUser = await User.findOne({ email: user.email });
+        token.emailVerified = !!dbUser?.emailVerified;
       }
       return token;
     },
@@ -59,6 +77,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
         session.user.role = token.role as "admin" | "user";
         session.user.email = token.email as string;
+        (session.user as any).emailVerified = token.emailVerified as boolean;
       }
       return session;
     },

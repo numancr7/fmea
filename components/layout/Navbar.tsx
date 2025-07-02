@@ -3,7 +3,7 @@
 import { Menu, Search, Bell, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signOut, useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from 'react';
@@ -15,11 +15,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Input } from "@/components/ui/input";
 
 interface NavbarProps {
   onMenuClick?: () => void;
   isSidebarOpen?: boolean;
 }
+
+const demoNotifications = [
+  { id: 1, message: "System maintenance scheduled for tonight." },
+  { id: 2, message: "New FMEA analysis assigned to you." },
+  { id: 3, message: "Password will expire in 5 days." },
+];
+
+const demoSearchItems = [
+  "Dashboard",
+  "Equipment",
+  "Failure Modes",
+  "Tasks",
+  "Teams",
+  "Users",
+];
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
   const router = useRouter();
@@ -40,9 +57,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
-    toast.success('Logged out successfully');
+    toast({ title: 'Success', description: 'Logged out successfully' });
     router.push('/login');
   };
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredSearch = demoSearchItems.filter(item => item.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <header className="bg-primary text-primary-foreground shadow-md py-3 fixed w-full top-0 z-40">
@@ -65,9 +85,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
         </div>
         
         <div className="flex items-center space-x-2">
-          {/* Only show search and notifications for authenticated users */}
-          {isAuthenticated && !isPublicRoute && (
-            <>
+          {/* Search button with dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
@@ -75,6 +95,27 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
               >
                 <Search className="h-5 w-5" />
               </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 p-2">
+              <Input
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="mb-2"
+                autoFocus
+              />
+              {filteredSearch.length > 0 ? (
+                filteredSearch.map(item => (
+                  <DropdownMenuItem key={item}>{item}</DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>No results found</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* Bell/notification button with dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
@@ -82,8 +123,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
               >
                 <Bell className="h-5 w-5" />
               </Button>
-            </>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {demoNotifications.length > 0 ? (
+                demoNotifications.map(n => (
+                  <DropdownMenuItem key={n.id}>{n.message}</DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>No notifications</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* Theme toggle button */}
+          <ThemeToggle />
           
           {isAuthenticated ? (
             <DropdownMenu>

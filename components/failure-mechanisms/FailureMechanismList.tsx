@@ -46,7 +46,7 @@ const FailureMechanismList: React.FC = () => {
     if (itemToDelete) {
       const itemName = mechanismList.find(m => m.id === itemToDelete)?.name || 'Failure Mechanism';
       setMechanismList(mechanismList.filter(item => item.id !== itemToDelete));
-      toast.success(`${itemName} has been deleted successfully`);
+      toast.success({ title: 'Success', description: `${itemName} has been deleted successfully` });
       setShowDeleteDialog(false);
       setItemToDelete(null);
     }

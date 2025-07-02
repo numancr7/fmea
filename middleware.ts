@@ -1,48 +1,40 @@
 import { NextResponse } from "next/server";
-import { withAuth } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
 
+export async function middleware(req: any) {
+  const { pathname } = req.nextUrl;
 
-export default withAuth(
-  // `withAuth` augments your `Request` with the user's token.
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const { pathname } = req.nextUrl;
-
-    const authRoutes = [
-      "/login",
-      "/signup",
-      "/forgot-password",
-      "/reset-password",
-      "/verify-email",
-    ];
-
-    if (token && authRoutes.some((p) => pathname.startsWith(p))) {
-      return NextResponse.redirect(new URL("/profile", req.url));
-    }
+  // Allow public signup (POST /api/users)
+  if (pathname === "/api/users" && req.method === "POST") {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ req, token }) => {
-        // Check if the user is authenticated.
-        const { pathname } = req.nextUrl;
-        if (
-          pathname === "/" || // Allow root path for landing page
-          pathname.startsWith("/api/auth") ||
-          pathname.startsWith("/login") ||
-          pathname.startsWith("/signup") ||
-          pathname.startsWith("/forgot-password") ||
-          pathname.startsWith("/reset-password") ||
-          pathname.startsWith("/verify-email")
-        )
-          return true;
-
-        return !!token;
-      },
-    },
   }
-);
 
+  // Allow public auth and public pages
+  const publicRoutes = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+  ];
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/api/auth") ||
+    publicRoutes.some((p) => pathname.startsWith(p))
+  ) {
+    return NextResponse.next();
+  }
+
+  // Require authentication for all other routes
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    const signInUrl = new URL("/login", req.url);
+    signInUrl.searchParams.set("callbackUrl", req.url);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
