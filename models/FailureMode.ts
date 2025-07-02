@@ -1,12 +1,19 @@
 import mongoose, { Schema, model, models } from 'mongoose';
-import { FailureMode } from '@/types/equipment-types';
 
-const failureModeSchema = new Schema<FailureMode>({
+const failureModeSchema = new Schema({
   id: { type: String, required: true, unique: true },
   category: { type: String, required: true },
-  subCategory: String,
   description: { type: String, required: true },
+  additionalDescription: { type: String },
+  riskRating: { type: String, enum: ['low', 'medium', 'high', 'critical'], required: true },
+  rpn: { type: Number, required: true },
+  severity: { type: Number, required: true },
+  probability: { type: Number, required: true },
+  detectability: { type: Number, required: true },
+  componentIds: [{ type: String, required: true }],
+  causeIds: [{ type: String, required: true }],
+  mechanismIds: [{ type: String, required: true }],
 });
 
-const FailureModeModel = models.FailureMode || model<FailureMode>('FailureMode', failureModeSchema);
+const FailureModeModel = models.FailureMode || model('FailureMode', failureModeSchema);
 export default FailureModeModel; 

@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import SparePart from '@/models/SparePart';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: List all spare parts
 export async function GET(req: NextRequest) {
   await connectToDatabase();
   try {
@@ -13,22 +14,18 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST: Create new spare part
 export async function POST(req: NextRequest) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { id, materialNo, description, proposedStock, currentStock, price, minStock, maxStock, status, equipmentTypeIds } = await req.json();
-
-  if (!id || !materialNo || !description) {
-    return NextResponse.json({ error: 'ID, materialNo, and description are required.' }, { status: 400 });
-  }
-
+  const data = await req.json();
   try {
-    const exists = await SparePart.findOne({ id });
+    const exists = await SparePart.findOne({ id: data.id });
     if (exists) {
-      return NextResponse.json({ error: 'SparePart ID already exists.' }, { status: 409 });
+      return NextResponse.json({ error: 'Spare Part ID already exists.' }, { status: 409 });
     }
-    const sparePart = await SparePart.create({ id, materialNo, description, proposedStock, currentStock, price, minStock, maxStock, status, equipmentTypeIds });
+    const sparePart = await SparePart.create(data);
     return NextResponse.json(sparePart, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

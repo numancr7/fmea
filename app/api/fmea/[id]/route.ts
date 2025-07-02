@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import FMEA from '@/models/FMEA';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: Get single FMEA by id
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectToDatabase();
   try {
@@ -14,6 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+// PATCH: Update FMEA by id (all fields)
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
@@ -28,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
+// DELETE: Remove FMEA by id
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;

@@ -21,6 +21,7 @@ async function calculateRPN(equipmentId: string) {
   return count > 0 ? Math.round(totalRPN / count) : null;
 }
 
+// GET: Get single equipment by id
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectToDatabase();
   const url = new URL(req.url);
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+// PATCH: Update equipment by id (all fields)
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
@@ -52,6 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
+// DELETE: Remove equipment by id
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,8 @@ const Profile = () => {
       if (!res.ok) throw new Error('Failed to update profile');
       toast({ title: 'Success', description: 'Profile updated successfully' });
       setIsEditing(false);
+      // Refresh session to get new avatar
+      await signIn('credentials', { redirect: false, email: session?.user?.email, password: 'dummy' });
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to update profile' });
     }

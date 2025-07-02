@@ -1,10 +1,10 @@
 import mongoose, { Schema, model, models } from 'mongoose';
-import { FailureMechanism } from '@/types/equipment-types';
 
-const failureMechanismSchema = new Schema<FailureMechanism>({
+const failureMechanismSchema = new Schema({
   id: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
+  category: { type: String, enum: ['Mechanical', 'Electrical', 'Safety & Control', 'Rotating', 'General'], required: true },
+  description: { type: String, required: true },
 });
 
-const FailureMechanismModel = models.FailureMechanism || model<FailureMechanism>('FailureMechanism', failureMechanismSchema);
+const FailureMechanismModel = models.FailureMechanism || model('FailureMechanism', failureMechanismSchema);
 export default FailureMechanismModel; 

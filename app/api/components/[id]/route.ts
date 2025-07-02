@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Component from '@/models/Component';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: Get single component by id
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectToDatabase();
   try {
@@ -14,13 +15,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+// PATCH: Update component by id (all fields)
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { name, subcomponents, remarks } = await req.json();
+  const data = await req.json();
   try {
-    const component = await Component.findOneAndUpdate({ id: params.id }, { name, subcomponents, remarks }, { new: true });
+    const component = await Component.findOneAndUpdate({ id: params.id }, data, { new: true });
     if (!component) return NextResponse.json({ error: 'Component not found' }, { status: 404 });
     return NextResponse.json(component);
   } catch (err: any) {
@@ -28,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
+// DELETE: Remove component by id
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;

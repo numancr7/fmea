@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Manufacturer from '@/models/Manufacturer';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: List all manufacturers
 export async function GET(req: NextRequest) {
   await connectToDatabase();
   try {
@@ -13,22 +14,18 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST: Create new manufacturer
 export async function POST(req: NextRequest) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { id, name, contactInfo, website } = await req.json();
-
-  if (!id || !name) {
-    return NextResponse.json({ error: 'ID and name are required.' }, { status: 400 });
-  }
-
+  const data = await req.json();
   try {
-    const exists = await Manufacturer.findOne({ id });
+    const exists = await Manufacturer.findOne({ id: data.id });
     if (exists) {
       return NextResponse.json({ error: 'Manufacturer ID already exists.' }, { status: 409 });
     }
-    const manufacturer = await Manufacturer.create({ id, name, contactInfo, website });
+    const manufacturer = await Manufacturer.create(data);
     return NextResponse.json(manufacturer, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

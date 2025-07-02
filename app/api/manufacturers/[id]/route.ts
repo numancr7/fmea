@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Manufacturer from '@/models/Manufacturer';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: Get single manufacturer by id
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectToDatabase();
   try {
@@ -14,13 +15,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
+// PATCH: Update manufacturer by id (all fields)
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { name, contactInfo, website } = await req.json();
+  const data = await req.json();
   try {
-    const manufacturer = await Manufacturer.findOneAndUpdate({ id: params.id }, { name, contactInfo, website }, { new: true });
+    const manufacturer = await Manufacturer.findOneAndUpdate({ id: params.id }, data, { new: true });
     if (!manufacturer) return NextResponse.json({ error: 'Manufacturer not found' }, { status: 404 });
     return NextResponse.json(manufacturer);
   } catch (err: any) {
@@ -28,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
+// DELETE: Remove manufacturer by id
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;

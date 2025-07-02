@@ -3,33 +3,30 @@ import { connectToDatabase } from '@/lib/db';
 import FailureMechanism from '@/models/FailureMechanism';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: List all failure mechanisms
 export async function GET(req: NextRequest) {
   await connectToDatabase();
   try {
-    const failureMechanisms = await FailureMechanism.find();
-    return NextResponse.json(failureMechanisms);
+    const mechanisms = await FailureMechanism.find();
+    return NextResponse.json(mechanisms);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
+// POST: Create new failure mechanism
 export async function POST(req: NextRequest) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { id, name } = await req.json();
-
-  if (!id || !name) {
-    return NextResponse.json({ error: 'ID and name are required.' }, { status: 400 });
-  }
-
+  const data = await req.json();
   try {
-    const exists = await FailureMechanism.findOne({ id });
+    const exists = await FailureMechanism.findOne({ id: data.id });
     if (exists) {
-      return NextResponse.json({ error: 'FailureMechanism ID already exists.' }, { status: 409 });
+      return NextResponse.json({ error: 'Failure Mechanism ID already exists.' }, { status: 409 });
     }
-    const failureMechanism = await FailureMechanism.create({ id, name });
-    return NextResponse.json(failureMechanism, { status: 201 });
+    const mechanism = await FailureMechanism.create(data);
+    return NextResponse.json(mechanism, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

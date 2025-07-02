@@ -23,6 +23,7 @@ async function calculateRPN(equipmentId: string) {
   return count > 0 ? Math.round(totalRPN / count) : null;
 }
 
+// GET: List all equipment
 export async function GET(req: NextRequest) {
   await connectToDatabase();
   const url = new URL(req.url);
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST: Create new equipment (all fields from model)
 export async function POST(req: NextRequest) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;

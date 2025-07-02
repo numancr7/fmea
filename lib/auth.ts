@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
               email: user.email,
               name: user.name,
               role: user.role,
+              image: user.avatar?.url || undefined,
             };
           } else {
             throw new Error("Email not verified");
@@ -50,6 +51,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          image: user.avatar?.url || undefined,
         };
       },
     }),
@@ -63,6 +65,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.email = user.email;
+        token.image = user.image || undefined;
         // Fetch emailVerified from DB as boolean
         const dbUser = await User.findOne({ email: user.email });
         token.emailVerified = !!dbUser?.emailVerified;
@@ -77,6 +80,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
         session.user.role = token.role as "admin" | "user";
         session.user.email = token.email as string;
+        session.user.image = token.image as string;
         (session.user as any).emailVerified = token.emailVerified as boolean;
       }
       return session;

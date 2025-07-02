@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Component from '@/models/Component';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: List all components
 export async function GET(req: NextRequest) {
   await connectToDatabase();
   try {
@@ -13,22 +14,18 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST: Create new component
 export async function POST(req: NextRequest) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { id, name, subcomponents, remarks } = await req.json();
-
-  if (!id || !name) {
-    return NextResponse.json({ error: 'ID and name are required.' }, { status: 400 });
-  }
-
+  const data = await req.json();
   try {
-    const exists = await Component.findOne({ id });
+    const exists = await Component.findOne({ id: data.id });
     if (exists) {
       return NextResponse.json({ error: 'Component ID already exists.' }, { status: 409 });
     }
-    const component = await Component.create({ id, name, subcomponents, remarks });
+    const component = await Component.create(data);
     return NextResponse.json(component, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

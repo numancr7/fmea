@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -143,7 +144,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="sm" className="gap-2">
-                  <User className="h-4 w-4" />
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
+                    <AvatarFallback>{user?.name ? user.name[0] : 'U'}</AvatarFallback>
+                  </Avatar>
                   <span className="hidden sm:inline-block">
                     {user?.name?.split(' ')[0] || 'Account'}
                   </span>

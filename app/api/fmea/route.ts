@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import FMEA from '@/models/FMEA';
 import { requireRole } from '@/lib/requireRole';
 
+// GET: List all FMEA analyses
 export async function GET(req: NextRequest) {
   await connectToDatabase();
   try {
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST: Create new FMEA analysis
 export async function POST(req: NextRequest) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
