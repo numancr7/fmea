@@ -70,25 +70,21 @@ const FailureMechanismList: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {mechanismList.map((mechanism: FailureMechanism) => (
-              <TableRow key={mechanism.id}>
+              <TableRow key={mechanism._id}>
                 <TableCell className="font-medium">{mechanism.name}</TableCell>
-                <TableCell>{mechanism.description || '-'}</TableCell>
-                <TableCell>{mechanism.category || '-'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Link href={`/failure-mechanisms/${mechanism.id}`}>
+                    <Link href={`/failure-mechanisms/${mechanism._id}`}>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link href={`/failure-mechanisms/${mechanism.id}/edit`}>
+                    <Link href={`/failure-mechanisms/${mechanism._id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -96,7 +92,7 @@ const FailureMechanismList: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleDeleteClick(mechanism.id)}
+                      onClick={() => handleDeleteClick(mechanism._id as string)}
                       className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Trash2 className="h-4 w-4" />

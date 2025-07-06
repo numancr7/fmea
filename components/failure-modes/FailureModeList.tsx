@@ -85,32 +85,24 @@ const FailureModeList: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>RPN</TableHead>
-              <TableHead>Risk Rating</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {modeList.map((mode: FailureMode) => (
-              <TableRow key={mode.id}>
-                <TableCell className="font-medium">{mode.description}</TableCell>
-                <TableCell>{mode.category}</TableCell>
+              <TableRow key={mode._id}>
+                <TableCell className="font-medium">{mode.name}</TableCell>
                 <TableCell>{mode.rpn}</TableCell>
-                <TableCell>
-                  <Badge className={getRiskColor(mode.riskRating || '')}>
-                    {mode.riskRating}
-                  </Badge>
-                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Link href={`/failure-modes/${mode.id}`}>
+                    <Link href={`/failure-modes/${mode._id}`}>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link href={`/failure-modes/${mode.id}/edit`}>
+                    <Link href={`/failure-modes/${mode._id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -118,7 +110,7 @@ const FailureModeList: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleDeleteClick(mode.id)}
+                      onClick={() => handleDeleteClick(mode._id as string)}
                       className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Trash2 className="h-4 w-4" />
