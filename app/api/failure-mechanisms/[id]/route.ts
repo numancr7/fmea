@@ -7,7 +7,7 @@ import { requireRole } from '@/lib/requireRole';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectToDatabase();
   try {
-    const mechanism = await FailureMechanism.findOne({ id: params.id });
+    const mechanism = await FailureMechanism.findById(params.id);
     if (!mechanism) return NextResponse.json({ error: 'Failure Mechanism not found' }, { status: 404 });
     return NextResponse.json(mechanism);
   } catch (err: unknown) {
@@ -20,9 +20,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const data = await req.json();
+  const { name } = await req.json();
+  if (!name) {
+    return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
+  }
   try {
-    const mechanism = await FailureMechanism.findOneAndUpdate({ id: params.id }, data, { new: true });
+    const mechanism = await FailureMechanism.findByIdAndUpdate(params.id, { name }, { new: true });
     if (!mechanism) return NextResponse.json({ error: 'Failure Mechanism not found' }, { status: 404 });
     return NextResponse.json(mechanism);
   } catch (err: unknown) {
@@ -36,7 +39,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (roleCheck) return roleCheck;
   await connectToDatabase();
   try {
-    const mechanism = await FailureMechanism.findOneAndDelete({ id: params.id });
+    const mechanism = await FailureMechanism.findByIdAndDelete(params.id);
     if (!mechanism) return NextResponse.json({ error: 'Failure Mechanism not found' }, { status: 404 });
     return NextResponse.json({ message: 'Failure Mechanism deleted' });
   } catch (err: unknown) {

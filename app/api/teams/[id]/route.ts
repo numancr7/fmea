@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   await connectToDatabase();
   try {
     const { id } = await params;
-    const team = await Team.findOne({ id });
+    const team = await Team.findOne({ _id: id }).populate('members', 'name email role');
     if (!team) return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     return NextResponse.json(team);
   } catch (err: unknown) {
@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const data = await req.json();
   try {
     const { id } = await params;
-    const team = await Team.findOneAndUpdate({ id }, data, { new: true });
+    const team = await Team.findOneAndUpdate({ _id: id }, data, { new: true });
     if (!team) return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     return NextResponse.json(team);
   } catch (err: unknown) {
@@ -39,7 +39,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   await connectToDatabase();
   try {
     const { id } = await params;
-    const team = await Team.findOneAndDelete({ id });
+    const team = await Team.findOneAndDelete({ _id: id });
     if (!team) return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     return NextResponse.json({ message: 'Team deleted' });
   } catch (err: unknown) {

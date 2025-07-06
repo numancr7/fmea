@@ -7,7 +7,14 @@ export async function GET() {
   await connectToDatabase();
   try {
     const teams = await Team.find().populate('members', 'name email role');
-    return NextResponse.json(teams);
+    // Map _id to id for frontend compatibility
+    const teamsWithId = teams.map((t: any) => {
+      const obj = t.toObject();
+      obj.id = obj._id?.toString();
+      delete obj._id;
+      return obj;
+    });
+    return NextResponse.json(teamsWithId);
   } catch (err: unknown) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }

@@ -115,10 +115,8 @@ export interface TaskMapping {
 
 // Failure Mechanism
 export interface FailureMechanism {
-  id: string;
-  category?: string;
-  description?: string;
-  name?: string;
+  _id?: string;
+  name: string;
 }
 
 // Failure Cause
@@ -135,19 +133,19 @@ export interface FailureCause {
 
 // Failure Mode
 export interface FailureMode {
-  id: string;
-  category: string;
-  subCategory?: string;
-  description: string;
-  additionalDescription?: string;
-  riskRating?: RiskLevel;
-  rpn?: number;
-  severity?: number;
-  probability?: number;
-  detectability?: number;
-  componentIds?: string[];
-  causeIds?: string[];
-  mechanismIds?: string[];
+  _id?: string;
+  id?: string;
+  name: string;
+  associatedComponent?: string;
+  severity?: string;
+  probability?: string;
+  detection?: string;
+  rpn?: string;
+  description?: string;
+  failureMechanism?: string;
+  effect?: string;
+  mitigationTasks?: string;
+  notes?: string;
 }
 
 // Spare Part

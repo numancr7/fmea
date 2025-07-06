@@ -55,11 +55,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
       });
   }, []);
 
-  // Debug: log user object to check image
-  if (typeof window !== 'undefined') {
-    console.log('Navbar user:', user);
-  }
-
   const handleLogout = async () => {
     await signOut({ redirect: false });
     toast({ title: 'Success', description: 'Logged out successfully' });

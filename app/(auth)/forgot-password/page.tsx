@@ -2,124 +2,158 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from "@/hooks/use-toast";
-import { z } from "zod";
+import { ArrowLeft, Mail, Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
-const ForgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
+const formSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
 });
 
-type ForgotPasswordForm = z.infer<typeof ForgotPasswordSchema>;
+type FormData = z.infer<typeof formSchema>;
 
-export default function ForgotPasswordPage() {
-  const [form, setForm] = useState<ForgotPasswordForm>({
-    email: "",
+const ForgotPassword = () => {
+  const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+    },
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof ForgotPasswordForm, string>>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const router = useRouter();
 
-  const handleChange = (field: keyof ForgotPasswordForm, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
-    setMessage(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = ForgotPasswordSchema.safeParse(form);
-
-    if (!result.success) {
-      const fieldErrors: Partial<Record<keyof ForgotPasswordForm, string>> = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0]) fieldErrors[err.path[0] as keyof ForgotPasswordForm] = err.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-
+  const onSubmit = async (values: FormData) => {
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
+      setLoading(true);
       
-      const data = res.ok && res.headers.get('content-type')?.includes('application/json') 
-                   ? await res.json() 
-                   : {};
-      setIsLoading(false);
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
 
-      if (res.ok) {
-        toast({ title: 'Success', description: 'Password reset link sent to your email address. Please check your inbox (and spam folder) to continue.' });
-        setForm({ email: "" });
-        router.push('/forgot-password/verify');
-      } else {
-        toast({ title: 'Error', description: data?.message || 'Failed to send password reset link. Please try again.' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send reset email');
       }
+
+      setEmailSent(true);
+      toast({
+        title: "Email Sent",
+        description: "If an account with that email exists, a password reset link has been sent.",
+      });
     } catch (error) {
-      console.error("Forgot password error:", error);
-      toast({ title: 'Error', description: 'An unexpected error occurred. Please try again later.' });
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to send reset email',
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
+              <Mail className="h-6 w-6 text-green-600" />
+            </div>
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Check your email
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              We&apos;ve sent a password reset link to your email address.
+            </p>
+          </div>
+          <div className="text-center">
+            <Link href="/login">
+              <Button variant="outline">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Login
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full lg:w-[40vw]">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Forgot Your Password?</CardTitle>
-          <CardDescription className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Forgot your password?
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
             Enter your email address and we&apos;ll send you a link to reset your password.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                required
-                placeholder="your@example.com"
-              />
-              {errors.email && <div className="text-red-500 text-xs">{errors.email}</div>}
-            </div>
+          </p>
+        </div>
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading}
+              disabled={loading}
             >
-              {isLoading ? 'Sending...' : 'Send Reset Link'}
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="mr-2 h-4 w-4" />
+              )}
+              Send reset link
             </Button>
-          </form>
-          {message && (
-            <div className={`mt-4 text-center ${message.includes("Error") || message.includes("Failed") ? "text-red-500" : "text-green-600"}`}>
-              {message}
-            </div>
-          )}
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              Remember your password?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-800 hover:underline">
-                Sign in
+            
+            <div className="text-center">
+              <Link href="/login" className="text-sm text-blue-600 hover:text-blue-500">
+                Back to login
               </Link>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
-} 
+};
+
+export default ForgotPassword; 
 
               

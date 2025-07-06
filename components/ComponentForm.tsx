@@ -59,15 +59,11 @@ const ComponentForm: React.FC<ComponentFormProps> = ({ component, isEditing = fa
           setModules(data.map((module: any) => module.name));
         }
       } catch (error) {
-        console.error('Error fetching modules:', error);
-        // Fallback to default modules if API fails
-        setModules([
-          'Electrical System',
-          'Mechanical System', 
-          'Control System',
-          'Safety System',
-          'Monitoring System'
-        ]);
+        toast({
+          title: "Error",
+          description: "Failed to load modules",
+          variant: "destructive"
+        });
       }
     };
 
@@ -124,7 +120,6 @@ const ComponentForm: React.FC<ComponentFormProps> = ({ component, isEditing = fa
       
       router.push(`/components/${savedComponent.id || component?.id}`);
     } catch (error) {
-      console.error('Error saving component:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to save component',

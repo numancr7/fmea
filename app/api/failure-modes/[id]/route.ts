@@ -6,7 +6,7 @@ import { requireRole } from '@/lib/requireRole';
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectToDatabase();
   try {
-    const failureMode = await FailureMode.findOne({ id: params.id });
+    const failureMode = await FailureMode.findById(params.id);
     if (!failureMode) return NextResponse.json({ error: 'FailureMode not found' }, { status: 404 });
     return NextResponse.json(failureMode);
   } catch (err: unknown) {
@@ -18,9 +18,41 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { category, subCategory, description } = await req.json();
+  const body = await req.json();
+  const {
+    name,
+    associatedComponent,
+    severity,
+    probability,
+    detection,
+    rpn,
+    description,
+    failureMechanism,
+    effect,
+    mitigationTasks,
+    notes
+  } = body;
+  if (!name) {
+    return NextResponse.json({ error: 'Failure Mode Name is required.' }, { status: 400 });
+  }
   try {
-    const failureMode = await FailureMode.findOneAndUpdate({ id: params.id }, { category, subCategory, description }, { new: true });
+    const failureMode = await FailureMode.findByIdAndUpdate(
+      params.id,
+      {
+        name,
+        associatedComponent,
+        severity,
+        probability,
+        detection,
+        rpn,
+        description,
+        failureMechanism,
+        effect,
+        mitigationTasks,
+        notes
+      },
+      { new: true }
+    );
     if (!failureMode) return NextResponse.json({ error: 'FailureMode not found' }, { status: 404 });
     return NextResponse.json(failureMode);
   } catch (err: unknown) {
@@ -33,7 +65,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (roleCheck) return roleCheck;
   await connectToDatabase();
   try {
-    const failureMode = await FailureMode.findOneAndDelete({ id: params.id });
+    const failureMode = await FailureMode.findByIdAndDelete(params.id);
     if (!failureMode) return NextResponse.json({ error: 'FailureMode not found' }, { status: 404 });
     return NextResponse.json({ message: 'FailureMode deleted' });
   } catch (err: unknown) {

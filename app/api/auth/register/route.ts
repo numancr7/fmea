@@ -15,7 +15,6 @@ const registerSchema = z.object({
   role: z.enum(["user", "admin"]),
   phone: z.string().optional().or(z.literal("")),
   address: z.string().optional().or(z.literal("")),
-  roomId: z.string().optional().or(z.literal("")),
   avatar: z.object({
     tempFilePath: z.string().min(1, 'Avatar file path is required'),
   }).optional(),
@@ -68,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, password, role, phone, address, roomId, avatar } = validationResult.data;
+    const { name, email, password, role, phone, address, avatar } = validationResult.data;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -125,7 +124,6 @@ export async function POST(req: NextRequest) {
       role,
       phone,
       address,
-      roomId,
       ...(avatarObj ? { avatar: avatarObj } : {}),
       verificationToken,
       verificationTokenExpiry,

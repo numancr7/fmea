@@ -23,13 +23,16 @@ const EditFailureModePage = () => {
   const id = params.id as string;
   const { data: failureMode, isLoading } = useSWR(id ? `/api/failure-modes/${id}` : null, (url) => fetch(url).then(res => res.json()));
   const [formData, setFormData] = useState({
-    description: '',
-    category: '',
-    rpn: '',
-    riskRating: '',
+    name: '',
+    associatedComponent: '',
     severity: '',
     probability: '',
-    detectability: '',
+    detection: '',
+    rpn: '',
+    description: '',
+    failureMechanism: '',
+    effect: '',
+    mitigationTasks: '',
     notes: ''
   });
   const [loading, setLoading] = useState(false);
@@ -37,13 +40,16 @@ const EditFailureModePage = () => {
   useEffect(() => {
     if (failureMode) {
       setFormData({
-        description: failureMode.description || '',
-        category: failureMode.category || '',
-        rpn: failureMode.rpn || '',
-        riskRating: failureMode.riskRating || '',
+        name: failureMode.name || '',
+        associatedComponent: failureMode.associatedComponent || '',
         severity: failureMode.severity || '',
         probability: failureMode.probability || '',
-        detectability: failureMode.detectability || '',
+        detection: failureMode.detection || '',
+        rpn: failureMode.rpn || '',
+        description: failureMode.description || '',
+        failureMechanism: failureMode.failureMechanism || '',
+        effect: failureMode.effect || '',
+        mitigationTasks: failureMode.mitigationTasks || '',
         notes: failureMode.notes || '',
       });
     }
@@ -62,6 +68,11 @@ const EditFailureModePage = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      if (!formData.name) {
+        toast.error('Failure Mode Name is required');
+        setLoading(false);
+        return;
+      }
       const res = await fetch(`/api/failure-modes/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -99,20 +110,12 @@ const EditFailureModePage = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input id="description" name="description" value={formData.description} onChange={handleChange} required placeholder="Enter failure mode description" />
+                  <Label htmlFor="name">Failure Mode Name</Label>
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter failure mode name" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input id="category" name="category" value={formData.category} onChange={handleChange} placeholder="Enter category" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rpn">RPN</Label>
-                  <Input id="rpn" name="rpn" value={formData.rpn} onChange={handleChange} placeholder="Enter RPN" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="riskRating">Risk Rating</Label>
-                  <Input id="riskRating" name="riskRating" value={formData.riskRating} onChange={handleChange} placeholder="Enter risk rating (low, medium, high, critical)" />
+                  <Label htmlFor="associatedComponent">Associated Component</Label>
+                  <Input id="associatedComponent" name="associatedComponent" value={formData.associatedComponent} onChange={handleChange} placeholder="Enter associated component" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="severity">Severity</Label>
@@ -141,10 +144,10 @@ const EditFailureModePage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="detectability">Detectability</Label>
-                  <Select value={formData.detectability} onValueChange={v => handleSelectChange('detectability', v)}>
-                    <SelectTrigger id="detectability">
-                      <SelectValue placeholder="Select detectability" />
+                  <Label htmlFor="detection">Detection</Label>
+                  <Select value={formData.detection} onValueChange={v => handleSelectChange('detection', v)}>
+                    <SelectTrigger id="detection">
+                      <SelectValue placeholder="Select detection" />
                     </SelectTrigger>
                     <SelectContent>
                       {detectionOptions.map(opt => (
@@ -153,10 +156,30 @@ const EditFailureModePage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rpn">Risk Priority Number (RPN)</Label>
+                  <Input id="rpn" name="rpn" value={formData.rpn} onChange={handleChange} placeholder="Enter RPN" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" name="description" value={formData.description} onChange={handleChange} placeholder="Enter description" rows={2} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="failureMechanism">Failure Mechanism</Label>
+                <Textarea id="failureMechanism" name="failureMechanism" value={formData.failureMechanism} onChange={handleChange} placeholder="Enter failure mechanism" rows={2} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="effect">Effect</Label>
+                <Textarea id="effect" name="effect" value={formData.effect} onChange={handleChange} placeholder="Enter effect" rows={2} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mitigationTasks">Mitigation Tasks</Label>
+                <Textarea id="mitigationTasks" name="mitigationTasks" value={formData.mitigationTasks} onChange={handleChange} placeholder="Enter mitigation tasks" rows={2} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
-                <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} placeholder="Enter notes" rows={3} />
+                <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} placeholder="Enter notes" rows={2} />
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
