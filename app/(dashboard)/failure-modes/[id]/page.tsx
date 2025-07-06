@@ -2,46 +2,36 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit } from 'lucide-react';
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+const getRiskColor = (riskRating: string) => {
+  switch (riskRating) {
+    case 'critical':
+      return 'bg-risk-critical text-white';
+    case 'high':
+      return 'bg-risk-high text-white';
+    case 'medium':
+      return 'bg-risk-medium text-white';
+    case 'low':
+      return 'bg-risk-low text-white';
+    default:
+      return 'bg-muted text-muted-foreground';
+  }
+};
+
 const FailureModeDetail = () => {
   const params = useParams();
   const id = params?.id as string;
-  
-  // Mock failure mode data
-  const failureMode = {
-    id: id || '1',
-    name: 'Motor Overheating',
-    description: 'Motor temperature exceeds normal operating parameters',
-    component: 'Motor Assembly M-452',
-    failureMechanism: 'Inadequate cooling, excessive load, or bearing failure',
-    effect: 'Reduced motor efficiency, potential damage to windings, eventual motor failure',
-    severity: 'High',
-    probability: 'Medium',
-    detection: 'Low',
-    riskPriorityNumber: '12',
-    mitigationTasks: 'Regular temperature monitoring, cooling system inspection',
-    notes: 'Install temperature sensors for continuous monitoring'
-  };
+  const { data: failureMode } = useSWR(id ? `/api/failure-modes/${id}` : null, fetcher);
 
-  const getSeverityBadge = (severity: string) => {
-    switch (severity) {
-      case 'Critical':
-        return <Badge className="bg-red-700">Critical</Badge>;
-      case 'High':
-        return <Badge className="bg-red-600">High</Badge>;
-      case 'Medium':
-        return <Badge className="bg-amber-500">Medium</Badge>;
-      case 'Low':
-        return <Badge className="bg-green-600">Low</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
+  if (!failureMode) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="pt-20 px-4">
@@ -65,61 +55,44 @@ const FailureModeDetail = () => {
             </Link>
           </div>
         </div>
-
         <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex justify-between">
-                <div>{failureMode.name}</div>
-                <div>{getSeverityBadge(failureMode.severity)}</div>
+                <div>{failureMode.description || '-'}</div>
+                <div>
+                  <Badge className={getRiskColor(failureMode.riskRating)}>
+                    {failureMode.riskRating || '-'}
+                  </Badge>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Description</h3>
-                  <p className="mt-1">{failureMode.description}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Category</h3>
+                  <p className="mt-1">{failureMode.category || '-'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Associated Component</h3>
-                  <p className="mt-1">{failureMode.component}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Severity</h3>
-                  <p className="mt-1">{failureMode.severity}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Probability</h3>
-                  <p className="mt-1">{failureMode.probability}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Detection</h3>
-                  <p className="mt-1">{failureMode.detection}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Risk Priority Number (RPN)</h3>
-                  <p className="mt-1">{failureMode.riskPriorityNumber}</p>
+                  <h3 className="text-sm font-medium text-gray-500">RPN</h3>
+                  <p className="mt-1">{failureMode.rpn || '-'}</p>
                 </div>
               </div>
-              
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Failure Mechanism</h3>
-                <p className="mt-1">{failureMode.failureMechanism}</p>
+                <h3 className="text-sm font-medium text-gray-500">Severity</h3>
+                <p className="mt-1">{failureMode.severity || '-'}</p>
               </div>
-              
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Effect</h3>
-                <p className="mt-1">{failureMode.effect}</p>
+                <h3 className="text-sm font-medium text-gray-500">Probability</h3>
+                <p className="mt-1">{failureMode.probability || '-'}</p>
               </div>
-              
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Mitigation Tasks</h3>
-                <p className="mt-1">{failureMode.mitigationTasks}</p>
+                <h3 className="text-sm font-medium text-gray-500">Detectability</h3>
+                <p className="mt-1">{failureMode.detectability || '-'}</p>
               </div>
-              
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Notes</h3>
-                <p className="mt-1">{failureMode.notes}</p>
+                <p className="mt-1">{failureMode.notes || '-'}</p>
               </div>
             </CardContent>
           </Card>

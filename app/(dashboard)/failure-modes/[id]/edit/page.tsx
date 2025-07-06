@@ -2,58 +2,59 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowLeft } from 'lucide-react';
+
+const severityOptions = ["Low", "Medium", "High", "Critical"];
+const probabilityOptions = ["Low", "Medium", "High"];
+const detectionOptions = ["Low", "Medium", "High"];
 
 const EditFailureModePage = () => {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-
+  const { data: failureMode, isLoading } = useSWR(id ? `/api/failure-modes/${id}` : null, (url) => fetch(url).then(res => res.json()));
   const [formData, setFormData] = useState({
-    name: '',
     description: '',
-    component: '',
-    failureMechanism: '',
-    effect: '',
+    category: '',
+    rpn: '',
+    riskRating: '',
     severity: '',
     probability: '',
-    detection: '',
-    riskPriorityNumber: '',
-    mitigationTasks: '',
+    detectability: '',
     notes: ''
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetch(`/api/failure-modes/${id}`)
-        .then(res => res.json())
-        .then(data => setFormData({
-          name: data.name || '',
-          description: data.description || '',
-          component: data.component || '',
-          failureMechanism: data.failureMechanism || '',
-          effect: data.effect || '',
-          severity: data.severity || '',
-          probability: data.probability || '',
-          detection: data.detection || '',
-          riskPriorityNumber: data.riskPriorityNumber || '',
-          mitigationTasks: data.mitigationTasks || '',
-          notes: data.notes || ''
-        }))
-        .catch(() => toast.error('Failed to load failure mode data'));
+    if (failureMode) {
+      setFormData({
+        description: failureMode.description || '',
+        category: failureMode.category || '',
+        rpn: failureMode.rpn || '',
+        riskRating: failureMode.riskRating || '',
+        severity: failureMode.severity || '',
+        probability: failureMode.probability || '',
+        detectability: failureMode.detectability || '',
+        notes: failureMode.notes || '',
+      });
     }
-  }, [id]);
+  }, [failureMode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -69,12 +70,14 @@ const EditFailureModePage = () => {
       if (!res.ok) throw new Error('Failed to update failure mode');
       toast.success('Failure Mode Updated');
       router.push('/failure-modes');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update failure mode');
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoading) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="pt-20 px-4">
@@ -88,7 +91,6 @@ const EditFailureModePage = () => {
           </Link>
           <h1 className="text-2xl font-bold">Edit Failure Mode</h1>
         </div>
-
         <Card>
           <form onSubmit={handleSubmit}>
             <CardHeader>
@@ -97,49 +99,64 @@ const EditFailureModePage = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
+                  <Label htmlFor="description">Description</Label>
+                  <Input id="description" name="description" value={formData.description} onChange={handleChange} required placeholder="Enter failure mode description" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="component">Component</Label>
-                  <Input id="component" name="component" value={formData.component} onChange={handleChange} />
+                  <Label htmlFor="category">Category</Label>
+                  <Input id="category" name="category" value={formData.category} onChange={handleChange} placeholder="Enter category" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rpn">RPN</Label>
+                  <Input id="rpn" name="rpn" value={formData.rpn} onChange={handleChange} placeholder="Enter RPN" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="riskRating">Risk Rating</Label>
+                  <Input id="riskRating" name="riskRating" value={formData.riskRating} onChange={handleChange} placeholder="Enter risk rating (low, medium, high, critical)" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="severity">Severity</Label>
-                  <Input id="severity" name="severity" value={formData.severity} onChange={handleChange} />
+                  <Select value={formData.severity} onValueChange={v => handleSelectChange('severity', v)}>
+                    <SelectTrigger id="severity">
+                      <SelectValue placeholder="Select severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {severityOptions.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="probability">Probability</Label>
-                  <Input id="probability" name="probability" value={formData.probability} onChange={handleChange} />
+                  <Select value={formData.probability} onValueChange={v => handleSelectChange('probability', v)}>
+                    <SelectTrigger id="probability">
+                      <SelectValue placeholder="Select probability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {probabilityOptions.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="detection">Detection</Label>
-                  <Input id="detection" name="detection" value={formData.detection} onChange={handleChange} />
+                  <Label htmlFor="detectability">Detectability</Label>
+                  <Select value={formData.detectability} onValueChange={v => handleSelectChange('detectability', v)}>
+                    <SelectTrigger id="detectability">
+                      <SelectValue placeholder="Select detectability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {detectionOptions.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="riskPriorityNumber">Risk Priority Number</Label>
-                  <Input id="riskPriorityNumber" name="riskPriorityNumber" value={formData.riskPriorityNumber} onChange={handleChange} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" name="description" value={formData.description} onChange={handleChange} rows={2} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="failureMechanism">Failure Mechanism</Label>
-                <Textarea id="failureMechanism" name="failureMechanism" value={formData.failureMechanism} onChange={handleChange} rows={2} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="effect">Effect</Label>
-                <Textarea id="effect" name="effect" value={formData.effect} onChange={handleChange} rows={2} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mitigationTasks">Mitigation Tasks</Label>
-                <Textarea id="mitigationTasks" name="mitigationTasks" value={formData.mitigationTasks} onChange={handleChange} rows={2} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
-                <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} rows={2} />
+                <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} placeholder="Enter notes" rows={3} />
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">

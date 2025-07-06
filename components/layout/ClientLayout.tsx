@@ -9,7 +9,6 @@ import Footer from './Footer';
 import { Button } from "@/components/ui/button";
 import { PanelLeft } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { toast } from '@/hooks/use-toast';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -21,14 +20,16 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const router = useRouter();
-  const [timedOut, setTimedOut] = useState(false);
-  const [error, setError] = useState(false);
   
   // Define public routes that don't require authentication
-  const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'];
+  const publicRoutes = [ '/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'];
   const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthenticated = status === "authenticated";
+  const isLoading = status === "loading";
   const shouldShowSidebar = isAuthenticated && !isPublicRoute;
+  
+  // Debug log
+  console.log('pathname:', pathname, 'isAuthenticated:', isAuthenticated, 'isPublicRoute:', isPublicRoute, 'shouldShowSidebar:', shouldShowSidebar);
   
   useEffect(() => {
     const checkMobile = () => {
@@ -43,35 +44,16 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (status === 'loading') {
-      timer = setTimeout(() => setTimedOut(true), 8000); // 8 seconds
-    }
-    return () => clearTimeout(timer);
-  }, [status]);
 
+  // Handle redirect for unauthenticated users on protected routes
   useEffect(() => {
-    if (timedOut && status === 'loading') {
-      setError(true);
-    } else {
-      setError(false);
+    if (!isAuthenticated && !isPublicRoute && !isLoading) {
+      router.push('/login');
     }
-  }, [timedOut, status]);
-
-  useEffect(() => {
-    // Remove emailVerified check and redirect logic
-  }, [isAuthenticated, isPublicRoute, session, router]);
+  }, [isAuthenticated, isPublicRoute, isLoading, router]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleRetry = () => {
-    setTimedOut(false);
-    setError(false);
-    router.refresh();
   };
 
   // For public routes, show a simple layout without sidebar
@@ -79,6 +61,18 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8 max-w-none">
         {children}
+      </div>
+    );
+  }
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -127,21 +121,13 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     );
   }
 
-  // For unauthenticated users on protected routes, show loading or redirect
+  // For unauthenticated users on protected routes, show loading while redirecting
   if (!isAuthenticated && !isPublicRoute) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{error ? 'Error: Failed to load session. Check your API, authentication configuration, or database connection.' : timedOut ? 'Error: Session loading timeout. Check your API and authentication configuration.' : 'Loading...'}</p>
-          {(error || timedOut) && (
-            <button
-              className="mt-6 px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
-              onClick={handleRetry}
-            >
-              Retry
-            </button>
-          )}
+          <p className="mt-4 text-muted-foreground">Redirecting to login...</p>
         </div>
       </div>
     );

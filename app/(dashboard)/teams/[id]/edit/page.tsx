@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 const EditTeamPage = () => {
   const router = useRouter();
@@ -47,7 +47,7 @@ const EditTeamPage = () => {
       if (!res.ok) throw new Error('Failed to update team');
       toast.success('Team Updated');
       router.push('/teams');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update team');
     } finally {
       setLoading(false);

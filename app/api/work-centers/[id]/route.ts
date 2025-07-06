@@ -9,8 +9,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const workCenter = await WorkCenter.findOne({ id: params.id });
     if (!workCenter) return NextResponse.json({ error: 'WorkCenter not found' }, { status: 404 });
     return NextResponse.json(workCenter);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -23,8 +23,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const workCenter = await WorkCenter.findOneAndUpdate({ id: params.id }, { name }, { new: true });
     if (!workCenter) return NextResponse.json({ error: 'WorkCenter not found' }, { status: 404 });
     return NextResponse.json(workCenter);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const workCenter = await WorkCenter.findOneAndDelete({ id: params.id });
     if (!workCenter) return NextResponse.json({ error: 'WorkCenter not found' }, { status: 404 });
     return NextResponse.json({ message: 'WorkCenter deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

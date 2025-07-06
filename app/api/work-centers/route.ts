@@ -3,13 +3,13 @@ import { connectToDatabase } from '@/lib/db';
 import WorkCenter from '@/models/WorkCenter';
 import { requireRole } from '@/lib/requireRole';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   await connectToDatabase();
   try {
     const workCenters = await WorkCenter.find();
     return NextResponse.json(workCenters);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
     const workCenter = await WorkCenter.create({ id, name });
     return NextResponse.json(workCenter, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

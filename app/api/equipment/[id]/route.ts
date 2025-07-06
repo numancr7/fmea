@@ -22,48 +22,51 @@ async function calculateRPN(equipmentId: string) {
 }
 
 // GET: Get single equipment by id
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectToDatabase();
   const url = new URL(req.url);
   const withRpn = url.searchParams.get('rpn') === 'true';
   try {
-    const equipment = await Equipment.findOne({ id: params.id });
+    const { id } = await params;
+    const equipment = await Equipment.findOne({ id });
     if (!equipment) return NextResponse.json({ error: 'Equipment not found' }, { status: 404 });
     if (withRpn) {
-      const rpn = await calculateRPN(params.id);
+      const rpn = await calculateRPN(id);
       return NextResponse.json({ ...equipment.toObject(), rpn });
     }
     return NextResponse.json(equipment);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
 // PATCH: Update equipment by id (all fields)
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
   const data = await req.json();
   try {
-    const equipment = await Equipment.findOneAndUpdate({ id: params.id }, data, { new: true });
+    const { id } = await params;
+    const equipment = await Equipment.findOneAndUpdate({ id }, data, { new: true });
     if (!equipment) return NextResponse.json({ error: 'Equipment not found' }, { status: 404 });
     return NextResponse.json(equipment);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
 // DELETE: Remove equipment by id
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
   try {
-    const equipment = await Equipment.findOneAndDelete({ id: params.id });
+    const { id } = await params;
+    const equipment = await Equipment.findOneAndDelete({ id });
     if (!equipment) return NextResponse.json({ error: 'Equipment not found' }, { status: 404 });
     return NextResponse.json({ message: 'Equipment deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

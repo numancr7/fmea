@@ -1,12 +1,12 @@
 "use client";
 
-import { Menu, Search, Bell, User, X } from 'lucide-react';
+import { Menu, Search, Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signOut, useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,20 +41,24 @@ const demoSearchItems = [
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
   const router = useRouter();
-  const pathname = usePathname();
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const user = session?.user;
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user?.image);
 
-  // Define public routes
-  const publicRoutes = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'];
-  const isPublicRoute = publicRoutes.includes(pathname);
+  useEffect(() => {
+    // Always fetch the latest user data from the backend
+    fetch("/api/users/me")
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.avatar?.url) setAvatarUrl(data.avatar.url);
+      });
+  }, []);
 
-  const handleMenuClick = () => {
-    if (onMenuClick) {
-      onMenuClick();
-    }
-  };
+  // Debug: log user object to check image
+  if (typeof window !== 'undefined') {
+    console.log('Navbar user:', user);
+  }
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -144,8 +148,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="sm" className="gap-2">
-                  <Avatar className="h-7 w-7">
-                    <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
+                  <Avatar className="h-7 w-7" onClick={() => { if (avatarUrl) window.open(avatarUrl, '_blank'); }} style={{ cursor: avatarUrl ? 'pointer' : 'default' }}>
+                    <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user?.name || 'User'} />
                     <AvatarFallback>{user?.name ? user.name[0] : 'U'}</AvatarFallback>
                   </Avatar>
                   <span className="hidden sm:inline-block">

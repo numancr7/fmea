@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import useSWR from 'swr';
 import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -17,200 +16,141 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import type { SparePart } from '@/types/models';
 
-interface SparePart {
-  id: string;
-  name: string;
-  partNumber: string;
-  description: string;
-  category: string;
-  manufacturer: string;
-  quantity: number;
-  minQuantity: number;
-  location: string;
-  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
-  createdAt: string;
-}
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'In Stock':
+      return <Badge className="bg-green-600">In Stock</Badge>;
+    case 'Low Stock':
+      return <Badge className="bg-amber-500">Low Stock</Badge>;
+    case 'Out of Stock':
+      return <Badge variant="destructive">Out of Stock</Badge>;
+    default:
+      return <Badge variant="outline">Unknown</Badge>;
+  }
+};
 
 const SparePartList: React.FC = () => {
-  const router = useRouter();
-  const [spareParts, setSpareParts] = useState<SparePart[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: spareParts = [], mutate } = useSWR<SparePart[]>('/api/spare-parts', fetcher);
+  const { data: equipmentList = [] } = useSWR<any[]>('/api/equipment', fetcher);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [partToDelete, setPartToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSpareParts();
-  }, []);
+  const handleDeleteClick = (id: string) => {
+    setPartToDelete(id);
+    setShowDeleteDialog(true);
+  };
 
-  const loadSpareParts = async () => {
-    try {
-      // Mock data - replace with actual API call
-      const mockData: SparePart[] = [
-        {
-          id: '1',
-          name: 'Bearing Assembly',
-          partNumber: 'BRG-001',
-          description: 'High-quality bearing assembly for industrial pumps',
-          category: 'Bearings',
-          manufacturer: 'Industrial Solutions Inc.',
-          quantity: 15,
-          minQuantity: 5,
-          location: 'Warehouse A',
-          status: 'In Stock',
-          createdAt: '2024-01-15'
-        },
-        {
-          id: '2',
-          name: 'Motor Controller',
-          partNumber: 'MTR-002',
-          description: 'Electronic motor controller for conveyor systems',
-          category: 'Controllers',
-          manufacturer: 'Precision Engineering Co.',
-          quantity: 2,
-          minQuantity: 3,
-          location: 'Warehouse B',
-          status: 'Low Stock',
-          createdAt: '2024-01-20'
-        },
-        {
-          id: '3',
-          name: 'Hydraulic Pump',
-          partNumber: 'HYD-003',
-          description: 'Hydraulic pump for heavy machinery',
-          category: 'Pumps',
-          manufacturer: 'Green Energy Systems',
-          quantity: 0,
-          minQuantity: 2,
-          location: 'Warehouse A',
-          status: 'Out of Stock',
-          createdAt: '2024-01-25'
-        }
-      ];
-      setSpareParts(mockData);
-    } catch (error) {
-      toast.error({ title: 'Error', description: 'Failed to load spare parts' });
-    } finally {
-      setLoading(false);
+  const confirmDelete = async () => {
+    if (partToDelete) {
+      try {
+        const res = await fetch(`/api/spare-parts/${partToDelete}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete');
+        toast({ title: 'Spare Part Deleted', description: 'Spare part deleted successfully' });
+        mutate();
+      } catch {
+        toast({ title: 'Error', description: 'Failed to delete spare part' });
+      } finally {
+        setShowDeleteDialog(false);
+        setPartToDelete(null);
+      }
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      // Mock API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSpareParts(prev => prev.filter(item => item.id !== id));
-      toast.success({ title: 'Success', description: 'Spare part deleted successfully' });
-    } catch (error) {
-      toast.error({ title: 'Error', description: 'Failed to delete spare part' });
-    }
+  const getEquipmentName = (id: string) => {
+    return equipmentList.find((e: any) => e.id === id)?.name || 'Unknown Equipment';
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'In Stock': return 'bg-green-100 text-green-800';
-      case 'Low Stock': return 'bg-yellow-100 text-yellow-800';
-      case 'Out of Stock': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="text-center">Loading spare parts...</div>
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto py-8">
+    <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Spare Parts</h1>
+        <h1 className="text-2xl font-bold">Spare Parts</h1>
         <Link href="/spare-parts/new">
           <Button>
-            <PlusCircle className="h-4 w-4 mr-2" />
+            <PlusCircle className="mr-2 h-4 w-4" />
             Add Spare Part
           </Button>
         </Link>
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {spareParts.map((sparePart) => (
-          <Card key={sparePart.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{sparePart.name}</CardTitle>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary">
-                      {sparePart.category}
-                    </Badge>
-                    <Badge className={getStatusColor(sparePart.status)}>
-                      {sparePart.status}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <Link href={`/spare-parts/${sparePart.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+      <div className="bg-white rounded-md shadow overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left">Equipment Name</th>
+              <th className="px-4 py-2 text-left">Material No.</th>
+              <th className="px-4 py-2 text-left">Material Description</th>
+              <th className="px-4 py-2 text-left">Stock (P/Min/Max)</th>
+              <th className="px-4 py-2 text-left">Price (RM)</th>
+              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-4 py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {spareParts.map((part: SparePart) => (
+              <tr key={part.id} className="border-b">
+                <td className="px-4 py-2">{getEquipmentName(part.equipmentTypeIds[0])}</td>
+                <td className="px-4 py-2 font-medium">{part.materialNo}</td>
+                <td className="px-4 py-2">{part.description}</td>
+                <td className="px-4 py-2">
+                  {part.proposedStock < part.minStock ? (
+                    <span className="text-red-600 font-medium">
+                      {part.proposedStock}/{part.minStock}/{part.maxStock}
+                    </span>
+                  ) : (
+                    <span>
+                      {part.proposedStock}/{part.minStock}/{part.maxStock}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2">RM {part.price}</td>
+                <td className="px-4 py-2">{getStatusBadge(part.status)}</td>
+                <td className="px-4 py-2">
+                  <div className="flex gap-2">
+                    <Link href={`/spare-parts/${part.id}`}>
                       <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Spare Part</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{sparePart.name}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDelete(sparePart.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-3">
-                {sparePart.description}
-              </p>
-              <div className="text-xs text-gray-500 space-y-1">
-                <p><strong>Part Number:</strong> {sparePart.partNumber}</p>
-                <p><strong>Manufacturer:</strong> {sparePart.manufacturer}</p>
-                <p><strong>Quantity:</strong> {sparePart.quantity}/{sparePart.minQuantity}</p>
-                <p><strong>Location:</strong> {sparePart.location}</p>
-                <p><strong>Created:</strong> {sparePart.createdAt}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                    </Link>
+                    <Link href={`/spare-parts/${part.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(part.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {spareParts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">No spare parts found</p>
-          <Link href="/spare-parts/new">
-            <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Create First Spare Part
-            </Button>
-          </Link>
-        </div>
-      )}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this spare part?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the spare part and all of its associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

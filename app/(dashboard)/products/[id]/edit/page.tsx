@@ -8,15 +8,25 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/sonner";
+import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 
-const ProductForm = () => {
-  const params = useParams();
-  const id = params.id as string;
-  const router = useRouter();
+interface ProductFormData {
+  name: string;
+  description: string;
+  manufacturer: string;
+  model: string;
+  serialNumber: string;
+  installationDate: string;
+  notes: string;
+}
 
-  const [formData, setFormData] = useState({
+const ProductEditPage = () => {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+  
+  const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
     manufacturer: '',
@@ -29,7 +39,7 @@ const ProductForm = () => {
 
   useEffect(() => {
     if (id) {
-      fetch(`/api/products/${id}`)
+      fetch(`/api/main-products/${id}`)
         .then(res => res.json())
         .then(data => setFormData({
           name: data.name || '',
@@ -53,7 +63,7 @@ const ProductForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await fetch(`/api/main-products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -61,11 +71,11 @@ const ProductForm = () => {
       if (!res.ok) throw new Error('Failed to update product');
       toast.success('Product Updated');
       router.push('/products');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update product');
     } finally {
       setLoading(false);
-    }
+    }    
   };
 
   return (
@@ -108,7 +118,7 @@ const ProductForm = () => {
                     onChange={handleChange}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="model">Model</Label>
                   <Input 
@@ -134,7 +144,7 @@ const ProductForm = () => {
                   <Input 
                     id="installationDate" 
                     name="installationDate"
-                    type="date"
+                    type="date" 
                     value={formData.installationDate}
                     onChange={handleChange}
                   />
@@ -156,7 +166,7 @@ const ProductForm = () => {
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea 
                   id="notes" 
-                  name="notes"
+                  name="notes" 
                   value={formData.notes}
                   onChange={handleChange}
                   rows={3}
@@ -178,4 +188,4 @@ const ProductForm = () => {
   );
 };
 
-export default ProductForm; 
+export default ProductEditPage; 

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Edit, Save, X } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
-import { title } from 'process';
 
 const Profile = () => {
   const { data: session } = useSession();
@@ -38,23 +37,22 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch(`/api/users/${session?.user?.id}`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/auth/profile`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          email: formData.email,
           phone: formData.phone,
           address: formData.address,
           avatar: avatarUrl ? { url: avatarUrl } : undefined,
         }),
       });
       if (!res.ok) throw new Error('Failed to update profile');
-      toast({ title: 'Success', description: 'Profile updated successfully' });
+      toast({ title: 'Success', description: 'Profile updated. Please log out and log back in to see changes.' });
       setIsEditing(false);
       // Refresh session to get new avatar
-      await signIn('credentials', { redirect: false, email: session?.user?.email, password: 'dummy' });
-    } catch (err) {
+      await fetch('/api/auth/session?update', { method: 'POST' });
+    } catch {
       toast({ title: 'Error', description: 'Failed to update profile' });
     }
   };
@@ -88,7 +86,7 @@ const Profile = () => {
       } else {
         toast({title:"error" , description:'Failed to upload avatar'});
       }
-    } catch (err) {
+    } catch {
       toast({title:"error" , description:'Failed to upload avatar'});
     }
   };

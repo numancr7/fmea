@@ -3,13 +3,13 @@ import { connectToDatabase } from '@/lib/db';
 import FailureCause from '@/models/FailureCause';
 import { requireRole } from '@/lib/requireRole';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   await connectToDatabase();
   try {
     const failureCauses = await FailureCause.find();
     return NextResponse.json(failureCauses);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
     const failureCause = await FailureCause.create({ id, causeName, causeCode, causeDescription });
     return NextResponse.json(failureCause, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

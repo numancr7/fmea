@@ -6,17 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Trash2 } from 'lucide-react';
-
-interface EquipmentType {
-  id: string;
-  name: string;
-  description?: string;
-  equipmentClassId: string | { _id: string; name: string };
-  systems: { name: string; components: { name: string }[] }[];
-}
 
 interface EquipmentClass {
   id: string;
@@ -226,7 +217,7 @@ const EquipmentTypeForm: React.FC<EquipmentTypeFormProps> = ({ equipmentTypeId }
       if (!res.ok) throw new Error('Failed to save equipment type');
       toast({ title: 'Success', description: equipmentTypeId ? 'Equipment type updated successfully' : 'Equipment type created successfully' });
       router.push('/equipment-types');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to save equipment type' });
     } finally {
       setLoading(false);
@@ -241,7 +232,7 @@ const EquipmentTypeForm: React.FC<EquipmentTypeFormProps> = ({ equipmentTypeId }
       if (!res.ok) throw new Error('Failed to delete equipment type');
       toast({ title: 'Success', description: 'Equipment type deleted successfully' });
       router.push('/equipment-types');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to delete equipment type' });
     } finally {
       setLoading(false);

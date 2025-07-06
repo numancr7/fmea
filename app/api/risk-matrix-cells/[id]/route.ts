@@ -9,8 +9,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const cell = await RiskMatrixCell.findOne({ id: params.id });
     if (!cell) return NextResponse.json({ error: 'RiskMatrixCell not found' }, { status: 404 });
     return NextResponse.json(cell);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -23,8 +23,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const cell = await RiskMatrixCell.findOneAndUpdate({ id: params.id }, { severity, likelihood, color, label }, { new: true });
     if (!cell) return NextResponse.json({ error: 'RiskMatrixCell not found' }, { status: 404 });
     return NextResponse.json(cell);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const cell = await RiskMatrixCell.findOneAndDelete({ id: params.id });
     if (!cell) return NextResponse.json({ error: 'RiskMatrixCell not found' }, { status: 404 });
     return NextResponse.json({ message: 'RiskMatrixCell deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

@@ -1,17 +1,6 @@
 "use client";
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-interface RiskItem {
-  id: string;
-  name: string;
-  severity: number;
-  probability: number;
-  riskScore: number;
-  category: string;
-}
 
 const RiskMatrix = () => {
   return (
@@ -25,32 +14,32 @@ const RiskMatrix = () => {
           <tr>
             <th colSpan={2} className="border border-black bg-gray-400 font-bold text-center max-w-[100px]">Consequence</th>
             {['1\nInsignificant', '2\nMinor', '3\nModerate', '4\nMajor', '5\nCatastrophic'].map((text, i) => (
-              <th key={i} className="border border-black bg-gray-300 font-bold text-center whitespace-pre-line">{text}</th>
+              <th key={`consequence-${i}`} className="border border-black bg-gray-300 font-bold text-center whitespace-pre-line">{text}</th>
             ))}
           </tr>
           <tr>
             <th colSpan={2} className="border border-black bg-gray-400 font-bold text-center max-w-[100px]">People (Health and Safety)</th>
             {['Slight Injury', 'Minor Injury', 'Major Injury', 'Single Fatality', 'Multiple Fatalities'].map((text, i) => (
-              <th key={i} className="border border-black text-center">{text}</th>
+              <th key={`people-${i}`} className="border border-black text-center">{text}</th>
             ))}
           </tr>
           <tr>
             <th colSpan={2} className="border border-black bg-gray-400 font-bold text-center max-w-[100px]">Environment</th>
             {['Slight Impact', 'Minor Impact', 'Localized Impact', 'Major Impact', 'Massive Impact'].map((text, i) => (
-              <th key={i} className="border border-black text-center">{text}</th>
+              <th key={`environment-${i}`} className="border border-black text-center">{text}</th>
             ))}
           </tr>
           <tr>
             <th rowSpan={2} className="border border-black bg-gray-400 font-bold text-center align-middle max-w-[100px]">Asset Damage</th>
             <th className="border border-black bg-gray-400 font-bold text-center">USD</th>
             {['Slight Damage\n(<25K)', 'Minor Damage\n(25-100k)', 'Local Damage\n(100K-1M)', 'Major Damage\n(1-10M)', 'Extensive Damage\n(>10M)'].map((text, i) => (
-              <th key={i} className="border border-black text-center whitespace-pre-line">{text}</th>
+              <th key={`asset-usd-${i}`} className="border border-black text-center whitespace-pre-line">{text}</th>
             ))}
           </tr>
           <tr>
             <th className="border border-black bg-gray-400 font-bold text-center">RM</th>
             {['Slight Damage\n(<75K)', 'Minor Damage\n(75-300k)', 'Local Damage\n(300K-3M)', 'Major Damage\n(3-30M)', 'Extensive Damage\n(>30M)'].map((text, i) => (
-              <th key={i} className="border border-black text-center whitespace-pre-line">{text}</th>
+              <th key={`asset-rm-${i}`} className="border border-black text-center whitespace-pre-line">{text}</th>
             ))}
           </tr>
           <tr>

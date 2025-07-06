@@ -1,58 +1,93 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit } from 'lucide-react';
-import { useRouter } from "next/navigation";
+import { Eye, Edit, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import useSWR from 'swr';
+import type { MainProduct } from '@/types/models';
+import { Badge } from "@/components/ui/badge";
 
-const mockProducts = [
-  {
-    id: "1",
-    name: "Pump Oil",
-    type: "Lubricant",
-    manufacturer: "Acme Oil Co.",
-  },
-  {
-    id: "2",
-    name: "Compressor Belt",
-    type: "Spare Part",
-    manufacturer: "Beta Ltd",
-  },
-  {
-    id: "3",
-    name: "Control Panel",
-    type: "Electrical",
-    manufacturer: "PanelTech",
-  },
-];
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-const ProductList: React.FC = () => {
-  const router = useRouter();
+const ProductList = () => {
+  const { data: products = [], error, isLoading, mutate } = useSWR<MainProduct[]>('/api/main-products', fetcher);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/main-products/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      toast.success('Product deleted successfully');
+      mutate();
+    } catch {
+      toast.error('Failed to delete product');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">Failed to load products.</div>;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">Products</h1>
-        <Button onClick={() => router.push("/products/new")}>Add Product</Button>
+    <Card className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Products</h2>
+        <Button asChild>
+          <Link href="/products/new">Add Product</Link>
+        </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockProducts.map((product) => (
-          <Card key={product.id} className="shadow-md">
-            <CardHeader>
-              <CardTitle>{product.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-2 text-sm text-muted-foreground">Type: {product.type}</div>
-              <div className="mb-2 text-sm text-muted-foreground">Manufacturer: {product.manufacturer}</div>
-              <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline" onClick={() => router.push(`/products/${product.id}`)}><Eye className="h-4 w-4" /></Button>
-                <Button size="sm" onClick={() => router.push(`/products/${product.id}/edit`)}><Edit className="h-4 w-4" /></Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left">Name</th>
+              <th className="px-4 py-2 text-left">Equipment Type</th>
+              <th className="px-4 py-2 text-left">Components</th>
+              <th className="px-4 py-2 text-left">Risk Rating</th>
+              <th className="px-4 py-2 text-left">Probability</th>
+              <th className="px-4 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product: MainProduct) => (
+              <tr key={product.id} className="border-b">
+                <td className="px-4 py-2">{product.name || '-'}</td>
+                <td className="px-4 py-2">{product.equipmentTypeId || '-'}</td>
+                <td className="px-4 py-2">{Array.isArray(product.componentIds) ? product.componentIds.length : '-'}</td>
+                <td className="px-4 py-2">
+                  {product.riskRating ? (
+                    <Badge className={
+                      product.riskRating === 'low' ? 'bg-green-400' :
+                      product.riskRating === 'medium' ? 'bg-yellow-400 text-black' :
+                      product.riskRating === 'high' ? 'bg-red-400' :
+                      product.riskRating === 'critical' ? 'bg-red-900' :
+                      'bg-gray-400'
+                    }>
+                      {product.riskRating}
+                    </Badge>
+                  ) : '-'}
+                </td>
+                <td className="px-4 py-2">{product.probability || '-'}</td>
+                <td className="px-4 py-2">
+                  <div className="flex gap-2">
+                    <Link href={`/products/${product.id}`}><Eye className="h-4 w-4" /></Link>
+                    <Link href={`/products/${product.id}/edit`}><Edit className="h-4 w-4" /></Link>
+                    <Button size="icon" variant="destructive" onClick={() => handleDelete(product.id)} disabled={deletingId === product.id}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </div>
+    </Card>
   );
 };
 

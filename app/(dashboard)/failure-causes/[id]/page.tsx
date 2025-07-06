@@ -2,21 +2,20 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Edit } from 'lucide-react';
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 const FailureCauseDetail = () => {
   const params = useParams();
   const id = params?.id as string;
-  
-  // Mock failure cause data
-  const failureCause = {
-    id: id,
-    name: 'Poor maintenance',
-    description: 'Inadequate maintenance procedures leading to equipment degradation and failure.'
-  };
+  const { data: failureCause } = useSWR(id ? `/api/failure-causes/${id}` : null, fetcher);
+
+  if (!failureCause) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="pt-20 px-4">
@@ -40,21 +39,13 @@ const FailureCauseDetail = () => {
             </Link>
           </div>
         </div>
-
-        <Card>
+        <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>{failureCause.name}</CardTitle>
+            <CardTitle>Cause Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Name</h3>
-                <p className="mt-1">{failureCause.name}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Description</h3>
-                <p className="mt-1">{failureCause.description || 'No description provided'}</p>
-              </div>
+          <CardContent>
+            <div>
+              <span className="font-medium">Name:</span> {failureCause.name}
             </div>
           </CardContent>
         </Card>

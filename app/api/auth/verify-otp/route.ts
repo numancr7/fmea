@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User";
 import { connectToDatabase } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { cookies } from "next/headers";
 // import { signJwt } from "@/lib/utils"; // If you want to issue a JWT
 
 export async function POST(req: NextRequest) {

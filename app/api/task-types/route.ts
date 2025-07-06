@@ -3,13 +3,13 @@ import { connectToDatabase } from '@/lib/db';
 import TaskType from '@/models/TaskType';
 import { requireRole } from '@/lib/requireRole';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   await connectToDatabase();
   try {
     const taskTypes = await TaskType.find();
     return NextResponse.json(taskTypes);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
     const taskType = await TaskType.create({ id, name });
     return NextResponse.json(taskType, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

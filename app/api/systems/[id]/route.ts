@@ -3,40 +3,46 @@ import { connectToDatabase } from '@/lib/db';
 import System from '@/models/System';
 import { requireRole } from '@/lib/requireRole';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+// GET: Get single system by id
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectToDatabase();
   try {
-    const system = await System.findOne({ id: params.id });
+    const { id } = await params;
+    const system = await System.findOne({ id });
     if (!system) return NextResponse.json({ error: 'System not found' }, { status: 404 });
     return NextResponse.json(system);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+// PATCH: Update system by id (all fields)
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
-  const { name, components } = await req.json();
+  const data = await req.json();
   try {
-    const system = await System.findOneAndUpdate({ id: params.id }, { name, components }, { new: true });
+    const { id } = await params;
+    const system = await System.findOneAndUpdate({ id }, data, { new: true });
     if (!system) return NextResponse.json({ error: 'System not found' }, { status: 404 });
     return NextResponse.json(system);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+// DELETE: Remove system by id
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const roleCheck = await requireRole(req, ['admin']);
   if (roleCheck) return roleCheck;
   await connectToDatabase();
   try {
-    const system = await System.findOneAndDelete({ id: params.id });
+    const { id } = await params;
+    const system = await System.findOneAndDelete({ id });
     if (!system) return NextResponse.json({ error: 'System not found' }, { status: 404 });
     return NextResponse.json({ message: 'System deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

@@ -32,10 +32,10 @@ const SystemFormPage = () => {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('Failed to create system');
-      toast.success('System Created');
+      toast({title:'Success' ,description:'System Created'});
       router.push('/systems');
-    } catch (error) {
-      toast.error('Failed to create system');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to create system' });
     } finally {
       setLoading(false);
     }

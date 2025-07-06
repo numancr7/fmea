@@ -37,7 +37,7 @@ const EquipmentClassFormPage = () => {
       if (!res.ok) throw new Error('Failed to create equipment class');
       toast({ title: 'Success', description: 'Equipment Class Created' });
       router.push('/equipment-classes');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to create equipment class' });
     }
   };

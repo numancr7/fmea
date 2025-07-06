@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 const EditRiskMatrixCellPage = () => {
   const router = useRouter();
@@ -53,7 +53,7 @@ const EditRiskMatrixCellPage = () => {
       if (!res.ok) throw new Error('Failed to update risk matrix cell');
       toast.success('Risk Matrix Cell Updated');
       router.push('/risk-matrix-cells');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update risk matrix cell');
     } finally {
       setLoading(false);

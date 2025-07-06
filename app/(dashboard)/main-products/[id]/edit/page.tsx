@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const EditMainProductPage = () => {
   const router = useRouter();
@@ -56,7 +56,7 @@ const EditMainProductPage = () => {
       if (!res.ok) throw new Error('Failed to update main product');
       toast.success('Main Product Updated');
       router.push('/main-products');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update main product');
     } finally {
       setLoading(false);

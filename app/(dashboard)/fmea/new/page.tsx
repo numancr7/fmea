@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const FMEAFormPage = () => {
   const router = useRouter();
@@ -36,10 +36,10 @@ const FMEAFormPage = () => {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('Failed to create FMEA');
-      toast.success('FMEA Created');
+      toast({title:'success',description:'FMEA Created'});
       router.push('/fmea');
-    } catch (error) {
-      toast.error('Failed to create FMEA');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to create FMEA' });
     } finally {
       setLoading(false);
     }

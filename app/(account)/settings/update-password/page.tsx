@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +20,6 @@ const updatePasswordSchema = z.object({
 type UpdatePasswordForm = z.infer<typeof updatePasswordSchema>;
 
 export default function UpdatePasswordPage() {
-  const router = useRouter();
   const [form, setForm] = useState<UpdatePasswordForm>({
     currentPassword: '',
     newPassword: '',
@@ -66,8 +64,8 @@ export default function UpdatePasswordPage() {
       } else {
         toast({title:"error" , description:data.error || data.message || "An error occurred while updating your password."});
       }
-    } catch (error) {
-      toast({title:"error" , description:"Network error or server issue."});
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update password' });
     } finally {
       setIsLoading(false);
     }

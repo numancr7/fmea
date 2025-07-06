@@ -177,7 +177,7 @@ export default function Signup() {
                 {isLoading ? 'Creating account...' : 'Create Account'}
               </Button>
               <div className="text-center mt-4">
-                <span className="text-sm text-gray-500">Already have an account?{' '}</span>
+                <span className="text-sm text-gray-500">Don&apos;t have an account?{' '}</span>
                 <Link href="/login">
                   <Button variant="link" className="text-blue-600 hover:text-blue-800 p-0 h-auto">Sign in</Button>
                 </Link>
@@ -188,7 +188,7 @@ export default function Signup() {
               <div className="text-green-600">
                 <h3 className="font-medium">Check Your Email</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  We've sent a verification email to {form.email}. Please check your inbox and click the verification link to activate your account.
+                  We&apos;ve sent a verification email to {form.email}. Please check your inbox and click the verification link to activate your account.
                 </p>
               </div>
               <div className="space-y-2">

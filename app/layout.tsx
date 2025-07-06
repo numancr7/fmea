@@ -9,7 +9,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Suspense } from "react";
 import Providers from "@/components/Providers";
 import ClientLayout from "@/components/layout/ClientLayout";
-import Error from './error';
 import ErrorBoundary from "@/components/layout/ErrorBoundary";
 
 const geistSans = Geist({

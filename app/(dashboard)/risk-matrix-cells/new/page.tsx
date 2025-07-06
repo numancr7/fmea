@@ -36,7 +36,7 @@ const RiskMatrixCellFormPage = () => {
       if (!res.ok) throw new Error('Failed to create risk matrix cell');
       toast.success('Risk Matrix Cell Created');
       router.push('/risk-matrix-cells');
-    } catch (error) {
+    } catch {
       toast.error('Failed to create risk matrix cell');
     } finally {
       setLoading(false);

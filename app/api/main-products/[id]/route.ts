@@ -10,8 +10,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const product = await MainProduct.findOne({ id: params.id });
     if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     return NextResponse.json(product);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -22,11 +22,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   await connectToDatabase();
   const data = await req.json();
   try {
-    const product = await MainProduct.findOneAndUpdate({ id: params.id }, data, { new: true });
+    const update: Record<string, unknown> = {};
+    if (data.name !== undefined) update.name = data.name;
+    if (data.description !== undefined) update.description = data.description;
+    if (data.manufacturer !== undefined) update.manufacturer = data.manufacturer;
+    if (data.model !== undefined) update.model = data.model;
+    if (data.serialNumber !== undefined) update.serialNumber = data.serialNumber;
+    if (data.installationDate !== undefined) update.installationDate = data.installationDate;
+    if (data.notes !== undefined) update.notes = data.notes;
+    const product = await MainProduct.findOneAndUpdate({ id: params.id }, update, { new: true });
     if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     return NextResponse.json(product);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -39,7 +47,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const product = await MainProduct.findOneAndDelete({ id: params.id });
     if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     return NextResponse.json({ message: 'Product deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

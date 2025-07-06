@@ -1,32 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-export async function middleware(req: any) {
+// Define publicly accessible routes
+const publicRoutes = new Set([
+  "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/about",
+  "/contact",
+]);
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public signup (POST /api/users)
-  if (pathname === "/api/users" && req.method === "POST") {
+  // Allow public API routes
+  if (pathname.startsWith("/api/auth") || 
+      (pathname === "/api/users" && req.method === "POST") ||
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/favicon")) {
     return NextResponse.next();
   }
 
-  // Allow public auth and public pages
-  const publicRoutes = [
-    "/login",
-    "/signup",
-    "/forgot-password",
-    "/reset-password",
-    "/verify-email",
-  ];
-  if (
-    pathname === "/" ||
-    pathname.startsWith("/api/auth") ||
-    publicRoutes.some((p) => pathname.startsWith(p))
-  ) {
+  // Allow public pages
+  if (publicRoutes.has(pathname)) {
     return NextResponse.next();
   }
 
   // Require authentication for all other routes
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
   if (!token) {
     const signInUrl = new URL("/login", req.url);
     signInUrl.searchParams.set("callbackUrl", req.url);
@@ -36,16 +41,9 @@ export async function middleware(req: any) {
   return NextResponse.next();
 }
 
+// Apply middleware to all routes except static files and public assets
 export const config = {
   matcher: [
-    /*
-     *
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     "/((?!_next/static|_next/image|favicon.ico|public/).*)",
   ],
 };

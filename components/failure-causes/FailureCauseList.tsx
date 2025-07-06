@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import useSWR from 'swr';
 import {
   Table,
   TableBody,
@@ -23,17 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { FailureCause } from '@/types/models';
 
-const mockFailureCauses = [
-  { id: '1', name: 'Poor maintenance', description: 'Inadequate maintenance procedures' },
-  { id: '2', name: 'Operator error', description: 'Human error during operation' },
-  { id: '3', name: 'Design flaw', description: 'Inherent design issues' },
-  { id: '4', name: 'Material fatigue', description: 'Material degradation over time' },
-  { id: '5', name: 'Environmental factors', description: 'External environmental conditions' }
-];
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const FailureCauseList: React.FC = () => {
-  const [causeList, setCauseList] = useState(mockFailureCauses);
+  const { data: causeList = [], mutate } = useSWR<FailureCause[]>('/api/failure-causes', fetcher);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -42,13 +38,19 @@ const FailureCauseList: React.FC = () => {
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      const itemName = causeList.find(c => c.id === itemToDelete)?.name || 'Failure Cause';
-      setCauseList(causeList.filter(item => item.id !== itemToDelete));
-      toast.success({ title: 'Success', description: `${itemName} has been deleted successfully` });
-      setShowDeleteDialog(false);
-      setItemToDelete(null);
+      try {
+        const res = await fetch(`/api/failure-causes/${itemToDelete}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete');
+        toast.success('Failure cause deleted successfully');
+        mutate();
+      } catch {
+        toast.error('Failed to delete failure cause');
+      } finally {
+        setShowDeleteDialog(false);
+        setItemToDelete(null);
+      }
     }
   };
 
@@ -57,8 +59,8 @@ const FailureCauseList: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Failure Causes</h1>
         <Link href="/failure-causes/new">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
+          <Button className="flex items-center gap-2">
+            <PlusCircle className="h-4 w-4" />
             Add Failure Cause
           </Button>
         </Link>
@@ -67,20 +69,22 @@ const FailureCauseList: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Cause Name</TableHead>
+              <TableHead>Cause Code</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {causeList.map((cause) => (
+            {causeList.map((cause: FailureCause) => (
               <TableRow key={cause.id}>
-                <TableCell className="font-medium">{cause.name}</TableCell>
-                <TableCell>{cause.description}</TableCell>
+                <TableCell className="font-medium">{cause.causeName}</TableCell>
+                <TableCell>{cause.causeCode || '-'}</TableCell>
+                <TableCell>{cause.causeDescription || '-'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`/failure-causes/${cause.id}`}>
-                      <Button variant="outline" size="sm"><Eye className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm"><Eye className="h-4 w-4" /> View</Button>
                     </Link>
                     <Link href={`/failure-causes/${cause.id}/edit`}>
                       <Button variant="outline" size="sm"><Edit className="h-4 w-4" /></Button>

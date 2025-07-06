@@ -1,44 +1,33 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Eye, Edit } from 'lucide-react';
-import { useRouter } from "next/navigation";
+import React, { useState } from 'react';
+import useSWR from 'swr';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { FailureMode } from '@/types/models';
 
-const mockFailureModes = [
-  {
-    id: "1",
-    description: "Seal leakage",
-    riskRating: "high",
-    rpn: 120,
-    category: "Mechanical",
-    severity: 8,
-    probability: 5,
-    detectability: 3,
-  },
-  {
-    id: "2",
-    description: "Bearing wear",
-    riskRating: "medium",
-    rpn: 60,
-    category: "Mechanical",
-    severity: 6,
-    probability: 4,
-    detectability: 2,
-  },
-  {
-    id: "3",
-    description: "Electrical short",
-    riskRating: "critical",
-    rpn: 200,
-    category: "Electrical",
-    severity: 10,
-    probability: 7,
-    detectability: 2,
-  },
-];
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const getRiskColor = (riskRating: string) => {
   switch (riskRating) {
@@ -56,38 +45,107 @@ const getRiskColor = (riskRating: string) => {
 };
 
 const FailureModeList: React.FC = () => {
-  const router = useRouter();
+  const { data: modeList = [], mutate } = useSWR<FailureMode[]>('/api/failure-modes', fetcher);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      try {
+        const res = await fetch(`/api/failure-modes/${itemToDelete}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete');
+        toast.success('Failure mode deleted successfully');
+        mutate();
+      } catch {
+        toast.error('Failed to delete failure mode');
+      } finally {
+        setShowDeleteDialog(false);
+        setItemToDelete(null);
+      }
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">Failure Modes</h1>
-        <Button onClick={() => router.push("/failure-modes/new")}>Add Failure Mode</Button>
+    <div className="pt-20 px-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Failure Modes</h1>
+        <Link href="/failure-modes/new">
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Failure Mode
+          </Button>
+        </Link>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockFailureModes.map((mode) => (
-          <Card key={mode.id} className="shadow-md">
-            <CardHeader>
-              <CardTitle>{mode.description}</CardTitle>
-              <div className="flex gap-2 mt-2">
-                <Badge className={getRiskColor(mode.riskRating)}>{mode.riskRating}</Badge>
-                <Badge variant="outline">RPN: {mode.rpn}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-2 text-sm text-muted-foreground">Category: {mode.category}</div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                <span>Severity: {mode.severity}</span>
-                <span>Probability: {mode.probability}</span>
-                <span>Detectability: {mode.detectability}</span>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline" onClick={() => router.push(`/failure-modes/${mode.id}`)}><Eye className="h-4 w-4" /></Button>
-                <Button size="sm" onClick={() => router.push(`/failure-modes/${mode.id}/edit`)}><Edit className="h-4 w-4" /></Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="bg-white rounded-md shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Description</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>RPN</TableHead>
+              <TableHead>Risk Rating</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {modeList.map((mode: FailureMode) => (
+              <TableRow key={mode.id}>
+                <TableCell className="font-medium">{mode.description}</TableCell>
+                <TableCell>{mode.category}</TableCell>
+                <TableCell>{mode.rpn}</TableCell>
+                <TableCell>
+                  <Badge className={getRiskColor(mode.riskRating || '')}>
+                    {mode.riskRating}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Link href={`/failure-modes/${mode.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link href={`/failure-modes/${mode.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(mode.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this failure mode?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the failure mode and all of its associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

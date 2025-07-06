@@ -1,15 +1,16 @@
-"use client";
-
 import React from 'react';
 import EquipmentTypeForm from '@/components/equipment-type/EquipmentTypeForm';
-import { useParams } from 'next/navigation';
 
-const EquipmentTypeFormPage = () => {
-  const params = useParams();
-  const equipmentTypeId = params.id as string;
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+const EquipmentTypeFormPage = async ({ params }: PageProps) => {
+  const { id } = await params;
+  
   return (
     <div className="pt-20 px-4">
-      <EquipmentTypeForm equipmentTypeId={equipmentTypeId} />
+      <EquipmentTypeForm equipmentTypeId={id} />
     </div>
   );
 };

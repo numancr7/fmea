@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { systemSchema } from './System';
 
 export interface IEquipmentType extends Document {
   name: string;

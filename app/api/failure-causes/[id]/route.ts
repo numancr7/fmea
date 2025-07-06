@@ -9,8 +9,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const failureCause = await FailureCause.findOne({ id: params.id });
     if (!failureCause) return NextResponse.json({ error: 'FailureCause not found' }, { status: 404 });
     return NextResponse.json(failureCause);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -23,8 +23,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const failureCause = await FailureCause.findOneAndUpdate({ id: params.id }, { causeName, causeCode, causeDescription }, { new: true });
     if (!failureCause) return NextResponse.json({ error: 'FailureCause not found' }, { status: 404 });
     return NextResponse.json(failureCause);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const failureCause = await FailureCause.findOneAndDelete({ id: params.id });
     if (!failureCause) return NextResponse.json({ error: 'FailureCause not found' }, { status: 404 });
     return NextResponse.json({ message: 'FailureCause deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

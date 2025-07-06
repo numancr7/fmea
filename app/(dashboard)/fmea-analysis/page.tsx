@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import useSWR from 'swr';
 import {
   Table,
   TableBody,
@@ -10,10 +11,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Trash2, Eye } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,15 +26,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { FMEA } from '@/types/fmea-analysis-types';
 
-interface FMEAAnalysis {
-  id: string;
-  title: string;
-  component: string;
-  status: 'draft' | 'in-progress' | 'completed' | 'review';
-  riskPriority: number;
-  lastUpdated: string;
-}
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const FMEAAnalysis = () => {
   const { data: session, status } = useSession();
@@ -46,83 +40,33 @@ const FMEAAnalysis = () => {
       return;
     }
     if (!(session.user as any)?.emailVerified) {
-      toast({ title: 'Account Not Verified', description: 'Check your email and verify your account.' });
+      toast.error('Account Not Verified. Check your email and verify your account.');
       router.replace('/login');
     }
   }, [session, status, router]);
 
-  // Mock FMEA analysis data
-  const [analysisList, setAnalysisList] = useState<FMEAAnalysis[]>([
-    { 
-      id: '1', 
-      title: 'Pump System Analysis', 
-      component: 'Centrifugal Pump',
-      status: 'completed',
-      riskPriority: 45,
-      lastUpdated: '2024-01-15'
-    },
-    { 
-      id: '2', 
-      title: 'Motor Assembly Review', 
-      component: 'Electric Motor',
-      status: 'in-progress',
-      riskPriority: 32,
-      lastUpdated: '2024-01-10'
-    },
-    { 
-      id: '3', 
-      title: 'Control System FMEA', 
-      component: 'PLC Controller',
-      status: 'draft',
-      riskPriority: 28,
-      lastUpdated: '2024-01-08'
-    },
-    { 
-      id: '4', 
-      title: 'Hydraulic System Analysis', 
-      component: 'Hydraulic Pump',
-      status: 'review',
-      riskPriority: 67,
-      lastUpdated: '2024-01-12'
-    }
-  ]);
+  const { data: fmeaList, isLoading, mutate } = useSWR<FMEA[]>('/api/fmea', fetcher);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: { variant: 'secondary' as const, text: 'Draft' },
-      'in-progress': { variant: 'default' as const, text: 'In Progress' },
-      completed: { variant: 'default' as const, text: 'Completed' },
-      review: { variant: 'outline' as const, text: 'Under Review' }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    return <Badge variant={config.variant}>{config.text}</Badge>;
-  };
-
-  const getRiskPriorityColor = (rpn: number) => {
-    if (rpn >= 60) return 'text-red-600 font-semibold';
-    if (rpn >= 40) return 'text-orange-600 font-semibold';
-    if (rpn >= 20) return 'text-yellow-600 font-semibold';
-    return 'text-green-600 font-semibold';
-  };
 
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      const itemName = analysisList.find(a => a.id === itemToDelete)?.title || 'FMEA Analysis';
-      
-      setAnalysisList(analysisList.filter(item => item.id !== itemToDelete));
-      
-      toast({ title: 'Success', description: `${itemName} has been deleted successfully` });
-      
-      setShowDeleteDialog(false);
-      setItemToDelete(null);
+      try {
+        const res = await fetch(`/api/fmea/${itemToDelete}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete FMEA');
+        toast.success('FMEA has been deleted successfully');
+        mutate();
+      } catch {
+        toast.error('Failed to delete FMEA');
+      } finally {
+        setShowDeleteDialog(false);
+        setItemToDelete(null);
+      }
     }
   };
 
@@ -134,67 +78,85 @@ const FMEAAnalysis = () => {
           <Link href="/fmea-analysis/new">
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              New FMEA Analysis
+              Add FMEA
             </Button>
           </Link>
         </div>
-        
         <div className="bg-white rounded-md shadow">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Component</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Risk Priority</TableHead>
-                <TableHead>Last Updated</TableHead>
+                <TableHead>FMEA Number</TableHead>
+                <TableHead>Main Equipment</TableHead>
+                <TableHead>Failure Mode Category</TableHead>
+                <TableHead>Risk Rating</TableHead>
+                <TableHead>Task Type</TableHead>
+                <TableHead>Work Center</TableHead>
+                <TableHead>Prepared By</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {analysisList.map((analysis) => (
-                <TableRow key={analysis.id}>
-                  <TableCell className="font-medium">{analysis.title}</TableCell>
-                  <TableCell>{analysis.component}</TableCell>
-                  <TableCell>{getStatusBadge(analysis.status)}</TableCell>
-                  <TableCell className={getRiskPriorityColor(analysis.riskPriority)}>
-                    {analysis.riskPriority}
-                  </TableCell>
-                  <TableCell>{analysis.lastUpdated}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link href={`/fmea-analysis/${analysis.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
+              {isLoading ? (
+                <TableRow><TableCell colSpan={9}>Loading...</TableCell></TableRow>
+              ) : fmeaList && fmeaList.length > 0 ? (
+                fmeaList.map((fmea) => (
+                  <TableRow key={fmea.id}>
+                    <TableCell className="font-medium">{fmea.fmeaNumber}</TableCell>
+                    <TableCell>{fmea.mainEquipment}</TableCell>
+                    <TableCell>{fmea.failureModeCategory}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        fmea.mitigatedRiskRating?.startsWith('A') ? 'bg-red-100 text-red-800' :
+                        fmea.mitigatedRiskRating?.startsWith('B') ? 'bg-orange-100 text-orange-800' :
+                        fmea.mitigatedRiskRating?.startsWith('C') ? 'bg-yellow-100 text-yellow-800' :
+                        fmea.mitigatedRiskRating?.startsWith('D') ? 'bg-blue-100 text-blue-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {fmea.mitigatedRiskRating}
+                      </span>
+                    </TableCell>
+                    <TableCell>{fmea.taskType}</TableCell>
+                    <TableCell>{fmea.mainWorkCenter}</TableCell>
+                    <TableCell>{fmea.preparedBy}</TableCell>
+                    <TableCell>{new Date(fmea.fmeaDate).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/fmea-analysis/${fmea.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Link href={`/fmea-analysis/${fmea.id}/edit`}>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteClick(fmea.id)}
+                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </Link>
-                      <Link href={`/fmea-analysis/${analysis.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDeleteClick(analysis.id)}
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow><TableCell colSpan={9}>No FMEA analyses found.</TableCell></TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
-
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete this FMEA analysis?</AlertDialogTitle>
+              <AlertDialogTitle>Are you sure you want to delete this FMEA?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the FMEA analysis and all associated data.
+                This action cannot be undone. This will permanently delete the FMEA analysis and all of its associated data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

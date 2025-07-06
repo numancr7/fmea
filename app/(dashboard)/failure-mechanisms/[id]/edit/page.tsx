@@ -2,61 +2,56 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/hooks/use-toast";
 import { ArrowLeft } from 'lucide-react';
 
-const FailureMechanismForm = () => {
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+const FailureMechanismEdit = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
+  const { data: failureMechanism, isLoading } = useSWR(id ? `/api/failure-mechanisms/${id}` : null, fetcher);
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetch(`/api/failure-mechanisms/${id}`)
-        .then(res => res.json())
-        .then(data => setFormData({
-          name: data.name || '',
-          description: data.description || ''
-        }))
-        .catch(() => toast.error('Failed to load failure mechanism data'));
+    if (failureMechanism) {
+      setName(failureMechanism.name || '');
     }
-  }, [id]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [failureMechanism]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (!name) {
+      toast({ title: 'Error', description: 'Mechanism name is required' });
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`/api/failure-mechanisms/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error('Failed to update failure mechanism');
-      toast.success('Failure Mechanism Updated');
+      toast({ title: 'Success', description: 'Failure Mechanism Updated' });
       router.push('/failure-mechanisms');
-    } catch (error) {
-      toast.error('Failed to update failure mechanism');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update failure mechanism' });
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoading) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="pt-20 px-4">
@@ -70,41 +65,27 @@ const FailureMechanismForm = () => {
           </Link>
           <h1 className="text-2xl font-bold">Edit Failure Mechanism</h1>
         </div>
-
-        <Card>
+        <Card className="max-w-md">
           <form onSubmit={handleSubmit}>
             <CardHeader>
-              <CardTitle>Edit Failure Mechanism Details</CardTitle>
+              <CardTitle>Edit Failure Mechanism</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input 
-                  id="name" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
+              <div>
+                <Label htmlFor="name">Mechanism Name *</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                   required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={3}
+                  placeholder="Enter mechanism name"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex gap-4">
+              <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Update Mechanism'}</Button>
               <Button type="button" variant="outline" onClick={() => router.push('/failure-mechanisms')} disabled={loading}>
                 Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Update Failure Mechanism'}
               </Button>
             </CardFooter>
           </form>
@@ -114,4 +95,4 @@ const FailureMechanismForm = () => {
   );
 };
 
-export default FailureMechanismForm; 
+export default FailureMechanismEdit; 

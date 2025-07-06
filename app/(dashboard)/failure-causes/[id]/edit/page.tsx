@@ -2,61 +2,56 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft } from 'lucide-react';
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 const FailureCauseEdit = () => {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
+  const { data: failureCause, isLoading } = useSWR(id ? `/api/failure-causes/${id}` : null, fetcher);
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetch(`/api/failure-causes/${id}`)
-        .then(res => res.json())
-        .then(data => setFormData({
-          name: data.name || '',
-          description: data.description || ''
-        }))
-        .catch(() => toast.error('Failed to load failure cause data'));
+    if (failureCause) {
+      setName(failureCause.name || '');
     }
-  }, [id]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, [failureCause]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (!name) {
+      toast({ title: 'Error', description: 'Cause name is required' });
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`/api/failure-causes/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error('Failed to update failure cause');
-      toast.success('Failure Cause Updated');
+      toast({ title: 'Success', description: 'Failure Cause Updated' });
       router.push('/failure-causes');
-    } catch (error) {
-      toast.error('Failed to update failure cause');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update failure cause' });
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoading) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="pt-20 px-4">
@@ -70,41 +65,27 @@ const FailureCauseEdit = () => {
           </Link>
           <h1 className="text-2xl font-bold">Edit Failure Cause</h1>
         </div>
-
-        <Card>
+        <Card className="max-w-md">
           <form onSubmit={handleSubmit}>
             <CardHeader>
-              <CardTitle>Edit Failure Cause Details</CardTitle>
+              <CardTitle>Edit Failure Cause</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input 
-                  id="name" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
+              <div>
+                <Label htmlFor="name">Cause Name *</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                   required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={3}
+                  placeholder="Enter cause name"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex gap-4">
+              <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Update Cause'}</Button>
               <Button type="button" variant="outline" onClick={() => router.push('/failure-causes')} disabled={loading}>
                 Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Update Failure Cause'}
               </Button>
             </CardFooter>
           </form>

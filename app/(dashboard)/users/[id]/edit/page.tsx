@@ -57,7 +57,7 @@ const EditUserPage = () => {
       if (!res.ok) throw new Error('Failed to update user');
       toast({ title: 'Success', description: 'User Updated' });
       router.push('/users');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to update user' });
     } finally {
       setLoading(false);

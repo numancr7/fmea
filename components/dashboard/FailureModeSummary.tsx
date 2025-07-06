@@ -2,28 +2,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-interface FailureMode {
-  id: string;
-  name: string;
-  category: string;
-  severity: 'Low' | 'Medium' | 'High' | 'Critical';
-  frequency: number;
-  lastOccurrence: string;
-}
-
-const riskLevels = [
-    { level: 'Critical', count: 1, color: 'bg-red-800' },
-    { level: 'High', count: 2, color: 'bg-red-600' },
-    { level: 'Medium', count: 2, color: 'bg-yellow-500' },
-];
-
-const categories = [
-    { name: 'Mechanical', count: 2, color: 'bg-blue-500' },
-    { name: 'Electrical', count: 1, color: 'bg-purple-500' },
-    { name: 'Operational', count: 2, color: 'bg-green-500' },
-];
 
 const FailureModeSummary = () => {
   // Replace with your actual data logic

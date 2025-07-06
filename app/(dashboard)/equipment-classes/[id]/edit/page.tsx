@@ -67,7 +67,7 @@ const EditEquipmentClassPage = () => {
       if (!res.ok) throw new Error('Failed to update equipment class');
       toast({ title: 'Success', description: 'Equipment Class Updated' });
       router.push('/equipment-classes');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to update equipment class' });
     } finally {
       setLoading(false);

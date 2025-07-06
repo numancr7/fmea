@@ -10,8 +10,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const mechanism = await FailureMechanism.findOne({ id: params.id });
     if (!mechanism) return NextResponse.json({ error: 'Failure Mechanism not found' }, { status: 404 });
     return NextResponse.json(mechanism);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -25,8 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const mechanism = await FailureMechanism.findOneAndUpdate({ id: params.id }, data, { new: true });
     if (!mechanism) return NextResponse.json({ error: 'Failure Mechanism not found' }, { status: 404 });
     return NextResponse.json(mechanism);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -39,7 +39,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const mechanism = await FailureMechanism.findOneAndDelete({ id: params.id });
     if (!mechanism) return NextResponse.json({ error: 'Failure Mechanism not found' }, { status: 404 });
     return NextResponse.json({ message: 'Failure Mechanism deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

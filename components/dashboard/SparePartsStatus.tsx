@@ -11,8 +11,13 @@ const spareParts = [
 ];
 
 const SparePartsStatus = () => {
-  const statusCounts = { approved: 0, pending: 0, rejected: 0 };
-  spareParts.forEach(part => { statusCounts[part.status]++; });
+  const statusCounts: Record<string, number> = { approved: 0, pending: 0, rejected: 0 };
+  spareParts.forEach(part => { 
+    const status = (part as any).status;
+    if (status && statusCounts.hasOwnProperty(status)) {
+      statusCounts[status]++;
+    }
+  });
   const lowStockParts = spareParts.filter(part => part.currentStock < part.minStock);
 
   return (

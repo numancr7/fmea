@@ -5,31 +5,38 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft } from 'lucide-react';
 
-const FailureMechanismForm = () => {
+const FailureMechanismCreate = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting failure mechanism:', formData);
-    
-    toast.success("Failure Mechanism Created");
-    
-    router.push('/failure-mechanisms');
+    setLoading(true);
+    if (!name) {
+      toast({ title: 'Error', description: 'Mechanism name is required' });
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch('/api/failure-mechanisms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error('Failed to create failure mechanism');
+      toast({ title: 'Success', description: 'Failure Mechanism Created' });
+      router.push('/failure-mechanisms');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to create failure mechanism' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,43 +49,29 @@ const FailureMechanismForm = () => {
               Back to Failure Mechanisms
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Create New Failure Mechanism</h1>
+          <h1 className="text-2xl font-bold">Add Failure Mechanism</h1>
         </div>
-
-        <Card>
+        <Card className="max-w-md">
           <form onSubmit={handleSubmit}>
             <CardHeader>
-              <CardTitle>Enter Failure Mechanism Details</CardTitle>
+              <CardTitle>Failure Mechanism Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input 
-                  id="name" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
+              <div>
+                <Label htmlFor="name">Mechanism Name *</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                   required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={3}
+                  placeholder="Enter mechanism name"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button type="button" variant="outline" onClick={() => router.push('/failure-mechanisms')}>
+            <CardFooter className="flex gap-4">
+              <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Create Mechanism'}</Button>
+              <Button type="button" variant="outline" onClick={() => router.push('/failure-mechanisms')} disabled={loading}>
                 Cancel
-              </Button>
-              <Button type="submit">
-                Create Failure Mechanism
               </Button>
             </CardFooter>
           </form>
@@ -88,4 +81,4 @@ const FailureMechanismForm = () => {
   );
 };
 
-export default FailureMechanismForm; 
+export default FailureMechanismCreate; 

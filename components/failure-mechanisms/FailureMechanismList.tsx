@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import useSWR from 'swr';
 import {
   Table,
   TableBody,
@@ -23,17 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { FailureMechanism } from '@/types/models';
 
-const mockFailureMechanisms = [
-  { id: '1', name: 'Inadequate cooling' },
-  { id: '2', name: 'Excessive load' },
-  { id: '3', name: 'Bearing failure' },
-  { id: '4', name: 'Power loss' },
-  { id: '5', name: 'Corrosion' }
-];
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const FailureMechanismList: React.FC = () => {
-  const [mechanismList, setMechanismList] = useState(mockFailureMechanisms);
+  const { data: mechanismList = [], mutate } = useSWR<FailureMechanism[]>('/api/failure-mechanisms', fetcher);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -42,13 +38,19 @@ const FailureMechanismList: React.FC = () => {
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      const itemName = mechanismList.find(m => m.id === itemToDelete)?.name || 'Failure Mechanism';
-      setMechanismList(mechanismList.filter(item => item.id !== itemToDelete));
-      toast.success({ title: 'Success', description: `${itemName} has been deleted successfully` });
-      setShowDeleteDialog(false);
-      setItemToDelete(null);
+      try {
+        const res = await fetch(`/api/failure-mechanisms/${itemToDelete}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete');
+        toast.success('Failure mechanism deleted successfully');
+        mutate();
+      } catch {
+        toast.error('Failed to delete failure mechanism');
+      } finally {
+        setShowDeleteDialog(false);
+        setItemToDelete(null);
+      }
     }
   };
 
@@ -68,20 +70,28 @@ const FailureMechanismList: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mechanismList.map((mechanism) => (
+            {mechanismList.map((mechanism: FailureMechanism) => (
               <TableRow key={mechanism.id}>
                 <TableCell className="font-medium">{mechanism.name}</TableCell>
+                <TableCell>{mechanism.description || '-'}</TableCell>
+                <TableCell>{mechanism.category || '-'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`/failure-mechanisms/${mechanism.id}`}>
-                      <Button variant="outline" size="sm"><Eye className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </Link>
                     <Link href={`/failure-mechanisms/${mechanism.id}/edit`}>
-                      <Button variant="outline" size="sm"><Edit className="h-4 w-4" /></Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </Link>
                     <Button 
                       variant="outline" 

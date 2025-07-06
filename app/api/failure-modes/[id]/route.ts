@@ -9,8 +9,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const failureMode = await FailureMode.findOne({ id: params.id });
     if (!failureMode) return NextResponse.json({ error: 'FailureMode not found' }, { status: 404 });
     return NextResponse.json(failureMode);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -23,8 +23,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const failureMode = await FailureMode.findOneAndUpdate({ id: params.id }, { category, subCategory, description }, { new: true });
     if (!failureMode) return NextResponse.json({ error: 'FailureMode not found' }, { status: 404 });
     return NextResponse.json(failureMode);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const failureMode = await FailureMode.findOneAndDelete({ id: params.id });
     if (!failureMode) return NextResponse.json({ error: 'FailureMode not found' }, { status: 404 });
     return NextResponse.json({ message: 'FailureMode deleted' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

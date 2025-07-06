@@ -234,4 +234,29 @@ export interface TaskType {
   id: string;
   name: string;
   code: string;
+}
+
+// User
+export interface User {
+  id?: string;
+  email: string;
+  password?: string; // Optional for security - only used during auth
+  name: string;
+  role: 'admin' | 'user';
+  roomId?: string;
+  phone?: string;
+  address?: string;
+  createdAt?: string;
+  emailVerified?: boolean;
+  team?: Team;
+}
+
+// Team
+export interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  members?: User[];
+  createdAt?: string;
+  updatedAt?: string;
 } 

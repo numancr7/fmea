@@ -42,7 +42,7 @@ const UserFormPage = () => {
       if (!res.ok) throw new Error('Failed to create user');
       toast({ title: 'Success', description: 'User Created' });
       router.push('/users');
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to create user' });
     } finally {
       setLoading(false);

@@ -2,7 +2,13 @@
 import React from "react";
 import Error from "@/app/error";
 
-export default function ErrorBoundary({ children }: { children: React.ReactNode }) {
-  const [error, setError] = React.useState<Error | null>(null);
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  error?: Error;
+}
+
+const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({ children, error }) => {
   return error ? <Error error={error} /> : <>{children}</>;
-} 
+};
+
+export default ErrorBoundary; 

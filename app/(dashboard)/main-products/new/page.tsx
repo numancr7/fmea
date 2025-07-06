@@ -36,10 +36,13 @@ const MainProductFormPage = () => {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('Failed to create main product');
-      toast.success('Main Product Created');
+      toast({
+        title: 'Main Product Created',
+        description: 'The main product has been created successfully',
+      });
       router.push('/main-products');
-    } catch (error) {
-      toast.error('Failed to create main product');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to create main product' });
     } finally {
       setLoading(false);
     }

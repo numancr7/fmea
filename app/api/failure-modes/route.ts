@@ -3,13 +3,13 @@ import { connectToDatabase } from '@/lib/db';
 import FailureMode from '@/models/FailureMode';
 import { requireRole } from '@/lib/requireRole';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   await connectToDatabase();
   try {
     const failureModes = await FailureMode.find();
     return NextResponse.json(failureModes);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
     const failureMode = await FailureMode.create({ id, category, subCategory, description });
     return NextResponse.json(failureMode, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

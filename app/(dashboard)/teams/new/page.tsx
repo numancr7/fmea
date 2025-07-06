@@ -31,10 +31,10 @@ const TeamFormPage = () => {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('Failed to create team');
-      toast.success('Team Created');
+      toast({ title: 'Success', description: 'Team Created' });
       router.push('/teams');
-    } catch (error) {
-      toast.error('Failed to create team');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to create team' });
     } finally {
       setLoading(false);
     }

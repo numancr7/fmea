@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,6 @@ import { toast } from "@/hooks/use-toast";
 
 const Login = () => {
   const router = useRouter();
-  const { data: session, status } = useSession();
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState<string>("");
@@ -23,10 +22,6 @@ const Login = () => {
 
   useEffect(() => {
     // Redirect to dashboard if already logged in
-    if (status === "authenticated") {
-      router.push('/');
-    }
-    // Show toast if redirected after email verification
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('verified') === 'true') {
@@ -34,7 +29,7 @@ const Login = () => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
-  }, [status, router]);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,9 +51,8 @@ const Login = () => {
         toast({ title: 'Invalid email or password', description: 'Please check your credentials and try again.' });
         setError("Invalid email or password");
       }
-    } catch (error) {
-      toast({ title: 'Login failed', description: 'An unexpected error occurred.' });
-      setError("Login failed");
+    } catch {
+      toast({ title: 'Error', description: 'Login failed' });
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +76,7 @@ const Login = () => {
         setError(data?.error || 'Failed to send OTP.');
         toast({ title: 'Error', description: data?.error || 'Failed to send OTP.' });
       }
-    } catch (err) {
+    } catch {
       setError('Failed to send OTP.');
       toast({ title: 'Error', description: 'Failed to send OTP.' });
     } finally {
@@ -114,21 +108,13 @@ const Login = () => {
         setError(data?.error || 'Invalid or expired OTP.');
         toast({ title: 'Error', description: data?.error || 'Invalid or expired OTP.' });
       }
-    } catch (err) {
+    } catch {
       setError('Failed to verify OTP.');
       toast({ title: 'Error', description: 'Failed to verify OTP.' });
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (status === "authenticated") {
-    return null; // Will redirect to dashboard
-  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
@@ -173,7 +159,7 @@ const Login = () => {
               </Button>
               <div className="text-center mt-2">
                 <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 hover:underline block mb-1">Forgot your password?</a>
-                <span className="text-sm text-gray-500">Don't have an account?{' '}
+                <span className="text-sm text-gray-500">Don&apos;t have an account?{' '}
                   <a href="/signup" className="text-blue-600 hover:text-blue-800 hover:underline">Sign up</a>
                 </span>
               </div>

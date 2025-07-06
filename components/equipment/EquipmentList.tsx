@@ -21,24 +21,22 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { PlusCircle, Edit, Eye, Trash2, Settings } from "lucide-react";
+import { PlusCircle, Edit, Eye, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Task } from "@/types/equipment-types";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const getBadgeVariant = (criticality: string) => {
   switch (criticality) {
     case "low":
-      return "bg-green-200 text-green-800";
+      return "bg-risk-low";
     case "medium":
-      return "bg-yellow-200 text-yellow-800";
+      return "bg-risk-medium";
     case "high":
-      return "bg-red-200 text-red-800";
+      return "bg-risk-high";
     default:
-      return "bg-gray-200 text-gray-800";
+      return "bg-muted";
   }
 };
 
@@ -47,10 +45,8 @@ const EquipmentList: React.FC = () => {
   const { data: equipment = [], mutate } = useSWR("/api/equipment", fetcher);
   const { data: equipmentTypes = [], isLoading: loadingTypes, error: errorTypes } = useSWR("/api/equipment-types", fetcher);
   const { data: equipmentClasses = [], isLoading: loadingClasses, error: errorClasses } = useSWR("/api/equipment-classes", fetcher);
-  const { data: tasks = [], isLoading: loadingTasks, error: errorTasks } = useSWR("/api/tasks", fetcher);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
-  const [selectedEquipmentForTasks, setSelectedEquipmentForTasks] = useState<any | null>(null);
 
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
@@ -67,31 +63,17 @@ const EquipmentList: React.FC = () => {
   };
 
   const getEquipmentClassName = (id: string) => {
-    return equipmentClasses.find((c: any) => c.id === id)?.name || "N/A";
+    return equipmentClasses.find((c: Record<string, unknown>) => c.id === id)?.name || "N/A";
   };
 
   const getEquipmentTypeName = (id: string) => {
-    return equipmentTypes.find((t: any) => t.id === id)?.name || "N/A";
+    return equipmentTypes.find((t: Record<string, unknown>) => t.id === id)?.name || "N/A";
   };
 
-  const getTasksForEquipmentClass = (equipmentClassId: string) => {
-    return tasks.filter((task: any) => task.equipmentClassId === equipmentClassId);
-  };
-
-  const handleTaskMappingChange = (equipmentId: string, taskId: string, isSelected: boolean) => {
-    // Implement API call to update task mapping if needed
-    // For now, just update local state (mock)
-    // ...
-  };
-
-  const getTaskMappingStatus = (equipment: any, taskId: string) => {
-    return equipment.taskListMapping?.find((tm: any) => tm.taskId === taskId)?.isSelected || false;
-  };
-
-  if (loadingTypes || loadingClasses || loadingTasks) {
+  if (loadingTypes || loadingClasses) {
     return <div>Loading...</div>;
   }
-  if (errorTypes || errorClasses || errorTasks) {
+  if (errorTypes || errorClasses) {
     return <div>Error loading reference data.</div>;
   }
 
@@ -124,123 +106,67 @@ const EquipmentList: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {equipment.map((item: any) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.equipmentNoFromSAP}</TableCell>
-                  <TableCell>
-                    <div className="max-w-[180px] truncate" title={item.equipmentDescription}>
-                      {item.equipmentDescription}
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.area}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
-                  <TableCell>
-                    <div className="max-w-[140px] truncate" title={item.functionalLocation}>
-                      {item.functionalLocation}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-[140px] truncate" title={item.functionalLocationFromSAP}>
-                      {item.functionalLocationFromSAP}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-[180px] truncate" title={item.functionalLocationDescriptionFromSAP}>
-                      {item.functionalLocationDescriptionFromSAP}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getEquipmentTypeName(item.equipmentType)}</TableCell>
-                  <TableCell>{getEquipmentClassName(item.equipmentClass)}</TableCell>
-                  <TableCell>
-                    <Badge className={getBadgeVariant(item.criticality)}>
-                      {item.criticality}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => setSelectedEquipmentForTasks(item)}>
-                      <Settings className="h-4 w-4 mr-1" />
-                      Configure
-                    </Button>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/equipment/${item.id}`)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/equipment/${item.id}/edit`)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteClick(item.id)}
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {equipment.map((item: Record<string, string | number | boolean | null | undefined>) => {
+                return (
+                  <TableRow key={item.id as string}>
+                    <TableCell className="font-medium">{item.equipmentNoFromSAP as string}</TableCell>
+                    <TableCell>
+                      <div className="max-w-[180px] truncate" title={item.equipmentDescription as string}>
+                        {item.equipmentDescription as string}
+                      </div>
+                    </TableCell>
+                    <TableCell>{item.area as string}</TableCell>
+                    <TableCell>{item.unit as string}</TableCell>
+                    <TableCell>
+                      <div className="max-w-[140px] truncate" title={item.functionalLocation as string}>
+                        {item.functionalLocation as string}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-[140px] truncate" title={item.functionalLocationFromSAP as string}>
+                        {item.functionalLocationFromSAP as string}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-[180px] truncate" title={item.functionalLocationDescriptionFromSAP as string}>
+                        {item.functionalLocationDescriptionFromSAP as string}
+                      </div>
+                    </TableCell>
+                    <TableCell>{getEquipmentTypeName(item.equipmentType as string)}</TableCell>
+                    <TableCell>{getEquipmentClassName(item.equipmentClass as string)}</TableCell>
+                    <TableCell>
+                      <Badge className={getBadgeVariant(item.criticality as string)}>
+                        {item.criticality as string}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {/* Remove Task Mapping dialog for now if it uses removed state */}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/equipment/${item.id}`)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/equipment/${item.id}/edit`)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteClick(item.id as string)}
+                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       </div>
-      {/* Task Mapping Dialog */}
-      {selectedEquipmentForTasks && (
-        <AlertDialog open={!!selectedEquipmentForTasks} onOpenChange={() => setSelectedEquipmentForTasks(null)}>
-          <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Task Mapping for {selectedEquipmentForTasks.equipmentDescription}</AlertDialogTitle>
-              <AlertDialogDescription>
-                Select which tasks apply to this equipment. Tasks are automatically filtered by equipment class.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="mt-4 w-full overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">Select</TableHead>
-                    <TableHead className="w-[120px]">Task List</TableHead>
-                    <TableHead className="w-[100px]">SAP GTL</TableHead>
-                    <TableHead className="w-[200px]">Description</TableHead>
-                    <TableHead className="w-[100px]">Type</TableHead>
-                    <TableHead className="w-[100px]">Interval</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {getTasksForEquipmentClass(selectedEquipmentForTasks.equipmentClass).map((task: Task) => (
-                    <TableRow key={task.id}>
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          checked={getTaskMappingStatus(selectedEquipmentForTasks, task.id)}
-                          onChange={(e) => handleTaskMappingChange(selectedEquipmentForTasks.id, task.id, e.target.checked)}
-                        />
-                      </TableCell>
-                      <TableCell>{task.taskList}</TableCell>
-                      <TableCell>{task.sapGTL}</TableCell>
-                      <TableCell>
-                        <div className="max-w-[200px] truncate" title={task.taskDescription}>
-                          {task.taskDescription}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{task.taskType}</Badge>
-                      </TableCell>
-                      <TableCell>{task.interval}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Close</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

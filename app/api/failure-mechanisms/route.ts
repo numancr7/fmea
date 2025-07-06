@@ -4,13 +4,13 @@ import FailureMechanism from '@/models/FailureMechanism';
 import { requireRole } from '@/lib/requireRole';
 
 // GET: List all failure mechanisms
-export async function GET(req: NextRequest) {
+export async function GET() {
   await connectToDatabase();
   try {
     const mechanisms = await FailureMechanism.find();
     return NextResponse.json(mechanisms);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
     const mechanism = await FailureMechanism.create(data);
     return NextResponse.json(mechanism, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

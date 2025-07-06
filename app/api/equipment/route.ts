@@ -32,15 +32,15 @@ export async function GET(req: NextRequest) {
     const equipments = await Equipment.find();
     if (withRpn) {
       // Attach RPN to each equipment
-      const results = await Promise.all(equipments.map(async (eq: any) => {
-        const rpn = await calculateRPN(eq.id);
-        return { ...eq.toObject(), rpn };
+      const results = await Promise.all(equipments.map(async (eq: unknown) => {
+        const rpn = await calculateRPN((eq as any).id);
+        return { ...(eq as any).toObject(), rpn };
       }));
       return NextResponse.json(results);
     }
     return NextResponse.json(equipments);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
     const equipment = await Equipment.create(data);
     return NextResponse.json(equipment, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 } 

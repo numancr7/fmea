@@ -1,48 +1,94 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, Loader2 } from 'lucide-react';
+
+interface Component {
+  id: string;
+  name: string;
+  description?: string;
+  modules?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const ComponentDetail = () => {
   const params = useParams();
   const id = params.id as string;
+  const [component, setComponent] = useState<Component | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Mock component data - in a real app, you would fetch this based on the ID
-  const component = {
-    id: id || '1',
-    name: 'Motor Assembly M-452',
-    description: 'High-efficiency electric motor assembly for XL pumps with advanced cooling system for extended operation.',
-    type: 'Motor',
-    manufacturer: 'ElectroPower Inc.',
-    model: 'M-452',
-    serialNumber: 'EP-M452-98765',
-    criticality: 'High',
-    parentProduct: 'Industrial Pump XL450',
-    installationDate: '2024-02-15',
-    lastInspection: '2025-03-10',
-    nextInspection: '2025-06-10',
-    relatedFailureModes: ['Motor Overheating', 'Bearing Failure', 'Power Loss'],
-    relatedSpareParts: ['Bearing Kit BK-45', 'Motor Cooling Fan MCF-12', 'Control Circuit CC-890'],
-    notes: 'Requires specialized lubricant MX-500. Inspection every 3 months.'
-  };
+  useEffect(() => {
+    const fetchComponent = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/components/${id}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Component not found');
+          } else {
+            setError('Failed to fetch component');
+          }
+          return;
+        }
+        
+        const data = await response.json();
+        setComponent(data);
+      } catch (err) {
+        setError('Failed to fetch component');
+        console.error('Error fetching component:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getCriticalityBadge = (criticality: string) => {
-    switch (criticality) {
-      case 'High':
-        return <Badge className="bg-red-600">High</Badge>;
-      case 'Medium':
-        return <Badge className="bg-amber-500">Medium</Badge>;
-      case 'Low':
-        return <Badge className="bg-green-600">Low</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
+    if (id) {
+      fetchComponent();
     }
-  };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="pt-20 px-4 flex items-center justify-center min-h-screen">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading component...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !component) {
+    return (
+      <div className="pt-20 px-4">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Link href="/components">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Components
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold">Component Details</h1>
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center text-red-600">
+                {error || 'Component not found'}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-20 px-4">
@@ -70,73 +116,44 @@ const ComponentDetail = () => {
         <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex justify-between">
-                <div>{component.name}</div>
-                <div>{getCriticalityBadge(component.criticality)}</div>
-              </CardTitle>
+              <CardTitle>{component.name}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Description</h3>
-                  <p className="mt-1">{component.description}</p>
+                  <p className="mt-1">{component.description || 'No description available'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Type</h3>
-                  <p className="mt-1">{component.type}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Component ID</h3>
+                  <p className="mt-1">{component.id}</p>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Manufacturer</h3>
-                  <p className="mt-1">{component.manufacturer}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Model</h3>
-                  <p className="mt-1">{component.model}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Serial Number</h3>
-                  <p className="mt-1">{component.serialNumber}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Parent Product</h3>
-                  <p className="mt-1">{component.parentProduct}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Installation Date</h3>
-                  <p className="mt-1">{component.installationDate}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Last Inspection</h3>
-                  <p className="mt-1">{component.lastInspection}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Next Inspection</h3>
-                  <p className="mt-1">{component.nextInspection}</p>
-                </div>
+                {component.createdAt && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Created At</h3>
+                    <p className="mt-1">{new Date(component.createdAt).toLocaleDateString()}</p>
+                  </div>
+                )}
+                {component.updatedAt && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Last Updated</h3>
+                    <p className="mt-1">{new Date(component.updatedAt).toLocaleDateString()}</p>
+                  </div>
+                )}
               </div>
               
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Related Failure Modes</h3>
-                <ul className="mt-1 list-disc pl-5">
-                  {component.relatedFailureModes.map((mode, index) => (
-                    <li key={index}>{mode}</li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Related Spare Parts</h3>
-                <ul className="mt-1 list-disc pl-5">
-                  {component.relatedSpareParts.map((part, index) => (
-                    <li key={index}>{part}</li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Notes</h3>
-                <p className="mt-1">{component.notes}</p>
-              </div>
+              {component.modules && component.modules.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Modules</h3>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {component.modules.map((module, index) => (
+                      <Badge key={index} variant="secondary">
+                        {module}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const EditFMEAPage = () => {
   const router = useRouter();
@@ -35,7 +35,7 @@ const EditFMEAPage = () => {
           team: data.team || '',
           status: data.status || ''
         }))
-        .catch(() => toast.error('Failed to load FMEA data'));
+        .catch(() => toast({ title: 'Error', description: 'Failed to load FMEA data' }));
     }
   }, [id]);
 
@@ -54,10 +54,10 @@ const EditFMEAPage = () => {
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error('Failed to update FMEA');
-      toast.success('FMEA Updated');
+      toast({ title: 'Success', description: 'FMEA Updated' });
       router.push('/fmea');
-    } catch (error) {
-      toast.error('Failed to update FMEA');
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update FMEA' });
     } finally {
       setLoading(false);
     }

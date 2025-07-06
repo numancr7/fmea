@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   await sendEmail({
     to: email,
     subject: "Your OTP Code",
-    html: `<p>Your OTP is: <b>${otp}</b></p>`,
+    html: `<p>Your OTP is:  <b>${otp}</b></p>`,
   });
 
   return NextResponse.json({ message: "OTP sent" });

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,13 +17,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { EquipmentClass } from '@/types/models';
 
 const EquipmentClassDetail = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [equipmentClass, setEquipmentClass] = useState<any>(null);
+  const [equipmentClass, setEquipmentClass] = useState<EquipmentClass | null>(null);
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -57,17 +58,11 @@ const EquipmentClassDetail = () => {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('Failed to delete equipment class');
-      toast({
-        title: 'Deleted',
-        description: `Equipment class "${equipmentClass?.name}" has been deleted successfully`
-      });
+      toast.success(`Equipment class "${equipmentClass?.name}" has been deleted successfully`);
       setShowDeleteDialog(false);
       router.push('/equipment-classes');
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete equipment class'
-      });
+    } catch {
+      toast.error('Failed to delete equipment class');
       setShowDeleteDialog(false);
     }
   };

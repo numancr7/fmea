@@ -11,7 +11,10 @@ const profileUpdateSchema = z.object({
   name: z.string().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  avatar: z.object({ tempFilePath: z.string().min(1) }).optional(),
+  avatar: z.object({
+    tempFilePath: z.string().min(1).optional(),
+    url: z.string().url().optional(),
+  }).optional(),
 });
 
 export async function PUT(req: NextRequest) {
@@ -28,17 +31,21 @@ export async function PUT(req: NextRequest) {
     }
     const { name, phone, address, avatar } = validationResult.data;
     let avatarObj = undefined;
-    if (avatar && avatar.tempFilePath) {
-      const cloudinaryResponse = await uploadAvatarToCloudinary(avatar.tempFilePath);
-      if (!cloudinaryResponse || cloudinaryResponse.error) {
-        return NextResponse.json({ error: 'Failed to upload avatar' }, { status: 500 });
+    if (avatar) {
+      if (avatar.url) {
+        avatarObj = { url: avatar.url };
+      } else if (avatar.tempFilePath) {
+        const cloudinaryResponse = await uploadAvatarToCloudinary(avatar.tempFilePath);
+        if (!cloudinaryResponse || cloudinaryResponse.error) {
+          return NextResponse.json({ error: 'Failed to upload avatar' }, { status: 500 });
+        }
+        avatarObj = {
+          public_id: cloudinaryResponse.public_id,
+          url: cloudinaryResponse.secure_url,
+        };
       }
-      avatarObj = {
-        public_id: cloudinaryResponse.public_id,
-        url: cloudinaryResponse.secure_url,
-      };
     }
-    const update: any = {};
+    const update: Record<string, unknown> = {};
     if (name) update.name = name;
     if (phone) update.phone = phone;
     if (address) update.address = address;

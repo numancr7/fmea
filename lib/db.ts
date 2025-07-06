@@ -7,14 +7,14 @@ if (!MONGODB_URI) {
 }
 
 declare global {
-    // eslint-disable-next-line no-var
-    var mongoose: { conn: any; promise: Promise<any> | null } | undefined;
+     
+    var mongoose: { conn: unknown; promise: Promise<unknown> | null } | undefined;
 }
 
 if (!global.mongoose) {
     global.mongoose = { conn: null, promise: null };
 }
-const cached = global.mongoose as { conn: any; promise: Promise<any> | null };
+const cached = global.mongoose as { conn: unknown; promise: Promise<unknown> | null };
 
 export async function connectToDatabase() {
     if(cached.conn){

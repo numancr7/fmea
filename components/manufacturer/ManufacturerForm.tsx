@@ -1,25 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-
-interface Manufacturer {
-  id: string;
-  name: string;
-  description: string;
-  contactPerson: string;
-  email: string;
-  phone: string;
-  address: string;
-  website: string;
-  specialties: string[];
-}
+import { toast } from 'sonner';
 
 interface ManufacturerFormProps {
   manufacturerId?: string;
@@ -39,13 +27,7 @@ const ManufacturerForm: React.FC<ManufacturerFormProps> = ({ manufacturerId }) =
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (manufacturerId) {
-      loadManufacturer();
-    }
-  }, [manufacturerId]);
-
-  const loadManufacturer = async () => {
+  const loadManufacturer = useCallback(async () => {
     try {
       const res = await fetch(`/api/manufacturers/${manufacturerId}`);
       if (!res.ok) throw new Error('Failed to load manufacturer');
@@ -60,10 +42,16 @@ const ManufacturerForm: React.FC<ManufacturerFormProps> = ({ manufacturerId }) =
         website: data.website || '',
         specialties: Array.isArray(data.specialties) ? data.specialties.join(', ') : ''
       });
-    } catch (error) {
-      toast.error({ title: 'Error', description: 'Failed to load manufacturer' });
+    } catch {
+      toast.error('Failed to load manufacturer');
     }
-  };
+  }, [manufacturerId]);
+
+  useEffect(() => {
+    if (manufacturerId) {
+      loadManufacturer();
+    }
+  }, [manufacturerId, loadManufacturer]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,10 +69,10 @@ const ManufacturerForm: React.FC<ManufacturerFormProps> = ({ manufacturerId }) =
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error('Failed to save manufacturer');
-      toast.success({ title: 'Success', description: manufacturerId ? 'Manufacturer updated successfully' : 'Manufacturer created successfully' });
+      toast.success(manufacturerId ? 'Manufacturer updated successfully' : 'Manufacturer created successfully');
       router.push('/manufacturers');
-    } catch (error) {
-      toast.error({ title: 'Error', description: 'Failed to save manufacturer' });
+    } catch {
+      toast.error('Failed to save manufacturer');
     } finally {
       setLoading(false);
     }

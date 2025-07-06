@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 const EditSystemPage = () => {
   const router = useRouter();
@@ -48,7 +48,7 @@ const EditSystemPage = () => {
       if (!res.ok) throw new Error('Failed to update system');
       toast.success('System Updated');
       router.push('/systems');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update system');
     } finally {
       setLoading(false);

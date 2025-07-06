@@ -1,139 +1,153 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import useSWR from 'swr';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
-import Link from 'next/link';
+import { PlusCircle, Edit, Trash2, Eye } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { Task } from '@/types/models';
 
-const Tasks = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [tasks, setTasks] = useState([]);
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-  useEffect(() => {
-    fetch('/api/tasks')
-      .then(res => res.json())
-      .then(data => setTasks(data));
-  }, []);
+const TaskList = () => {
+  const { data: taskList = [], mutate } = useSWR<Task[]>('/api/tasks', fetcher);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
-  const filteredTasks = tasks.filter(task =>
-    task.taskType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.workCenter.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.frequency.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setShowDeleteDialog(true);
+  };
 
-  const getTaskTypeColor = (taskType: string) => {
-    switch (taskType.toLowerCase()) {
-      case 'inspection':
-        return 'bg-blue-100 text-blue-800';
-      case 'replacement':
-        return 'bg-red-100 text-red-800';
-      case 'testing':
-        return 'bg-purple-100 text-purple-800';
-      case 'lubrication':
-        return 'bg-green-100 text-green-800';
-      case 'calibration':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-muted text-muted-foreground';
+  const confirmDelete = async () => {
+    if (itemToDelete) {
+      try {
+        const res = await fetch(`/api/tasks/${itemToDelete}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete');
+        toast.success('Task deleted successfully');
+        mutate();
+      } catch {
+        toast.error('Failed to delete task');
+      } finally {
+        setShowDeleteDialog(false);
+        setItemToDelete(null);
+      }
     }
   };
 
-  const getFrequencyColor = (frequency: string) => {
-    switch (frequency.toLowerCase()) {
-      case 'weekly':
-        return 'bg-red-100 text-red-800';
-      case 'monthly':
-        return 'bg-orange-100 text-orange-800';
-      case 'quarterly':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'semi-annually':
-        return 'bg-blue-100 text-blue-800';
-      case 'annually':
-        return 'bg-green-100 text-green-800';
+  const getTaskTypeBadgeVariant = (taskType: string) => {
+    switch (taskType) {
+      case 'PM':
+        return 'default';
+      case 'PPM':
+        return 'secondary';
+      case 'CM':
+        return 'destructive';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'outline';
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Tasks</h1>
+    <div className="pt-20 px-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Tasks</h1>
         <Link href="/tasks/new">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button className="flex items-center gap-2">
+            <PlusCircle className="h-4 w-4" />
             Add Task
           </Button>
         </Link>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Tasks</CardTitle>
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredTasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex-1 w-full">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-semibold text-lg">{task.taskType}</h3>
-                    <Badge className={getTaskTypeColor(task.taskType)}>
-                      {task.taskType}
-                    </Badge>
-                    <Badge className={getFrequencyColor(task.frequency)}>
-                      {task.frequency}
-                    </Badge>
-                    {task.shutdownRequired && (
-                      <Badge className="bg-red-100 text-red-800">
-                        Shutdown Required
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground mt-1">{task.mitigationAction}</p>
-                  <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
-                    <span>Work Center: {task.workCenter}</span>
-                  </div>
-                </div>
-                <div className="flex flex-row flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-                  <Link href={`/tasks/${task.id}`}>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4" />
+      <div className="bg-white rounded-md shadow overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-4 py-2 text-left font-medium">Task List</th>
+              <th className="px-4 py-2 text-left font-medium">SAP GTL</th>
+              <th className="px-4 py-2 text-left font-medium">Work Center</th>
+              <th className="px-4 py-2 text-left font-medium">Interval</th>
+              <th className="px-4 py-2 text-left font-medium">Task Type</th>
+              <th className="px-4 py-2 text-left font-medium">Description</th>
+              <th className="px-4 py-2 text-left font-medium">Personnel</th>
+              <th className="px-4 py-2 text-left font-medium">Man Hours</th>
+              <th className="px-4 py-2 text-left font-medium">Equipment Class</th>
+              <th className="px-4 py-2 text-left font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {taskList.map((item: Task) => (
+              <tr key={item.id} className="border-b">
+                <td className="px-4 py-2 font-medium">{item.taskList}</td>
+                <td className="px-4 py-2">{item.sapGTL}</td>
+                <td className="px-4 py-2">{item.mainWorkCenter}</td>
+                <td className="px-4 py-2">{item.interval}</td>
+                <td className="px-4 py-2">
+                  <Badge className={getTaskTypeBadgeVariant(item.taskType)}>
+                    {item.taskType}
+                  </Badge>
+                </td>
+                <td className="px-4 py-2">{item.taskDescription}</td>
+                <td className="px-4 py-2">{item.numberOfPerson}</td>
+                <td className="px-4 py-2">{item.manHour}</td>
+                <td className="px-4 py-2">{item.equipmentClassId}</td>
+                <td className="px-4 py-2">
+                  <div className="flex gap-2">
+                    <Link href={`/tasks/${item.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link href={`/tasks/${item.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(item.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  </Link>
-                  <Link href={`/tasks/${task.id}/edit`}>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                  </div>
+                </td>
+              </tr>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+          </tbody>
+        </table>
+      </div>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
-export default Tasks; 
+export default TaskList; 

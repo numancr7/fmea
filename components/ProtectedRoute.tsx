@@ -2,7 +2,7 @@
 import React from 'react';
 import { useSession } from 'next-auth/react'; // Use NextAuth session
 import { useRouter } from 'next/navigation'; // Use Next.js router
-import { toast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     if (!session?.user) {
       router.push('/login');
     } else if (requiredRole && (session.user as any).role !== requiredRole) {
-      toast({ title: 'Error', description: 'You do not have permission to access this page.' });
+      toast.error('You do not have permission to access this page.');
       router.push('/');
     }
   }, [session, status, requiredRole, router]);
