@@ -89,8 +89,8 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full lg:w-[40vw]">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-1 sm:p-4 w-full">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-center">DWTask AMS - FMEA</CardTitle>
           <CardDescription>Sign up for FMEA Management System</CardDescription>

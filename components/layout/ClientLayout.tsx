@@ -59,8 +59,10 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   // For public routes, show a simple layout without sidebar
   if (isPublicRoute) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8 max-w-none">
-        {children}
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-1 sm:p-8 max-w-none overflow-x-hidden w-full">
+        <div className="w-full h-full flex items-center justify-center max-w-full">
+          {children}
+        </div>
       </div>
     );
   }
@@ -68,7 +70,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center w-full overflow-x-hidden">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading...</p>
@@ -80,9 +82,9 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   // For authenticated users, show full layout with sidebar
   if (shouldShowSidebar) {
     return (
-      <div className="min-h-screen bg-background overflow-x-hidden flex flex-col">
+      <div className="min-h-screen bg-background overflow-x-hidden flex flex-col w-full">
         <Navbar onMenuClick={toggleSidebar} isSidebarOpen={sidebarOpen} />
-        <div className="flex relative flex-1">
+        <div className="flex relative flex-1 w-full">
           {/* Sidebar (desktop) */}
           {!isMobile && sidebarOpen && (
             <div className="fixed top-0 left-0 z-30 w-64 pt-16 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border shadow-lg">
@@ -99,7 +101,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             </div>
           )}
           <main className={cn(
-            "flex-1 p-6 transition-all duration-300 ease-in-out min-w-0 pt-16",
+            "flex-1 p-6 transition-all duration-300 ease-in-out min-w-0 pt-16 w-full max-w-full overflow-x-hidden",
             !isMobile && sidebarOpen ? "ml-64" : "ml-0"
           )}>
             <div className="m-4">
@@ -124,7 +126,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   // For unauthenticated users on protected routes, show loading while redirecting
   if (!isAuthenticated && !isPublicRoute) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center w-full overflow-x-hidden">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Redirecting to login...</p>
@@ -134,7 +136,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center w-full overflow-x-hidden">
       <div className="text-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
         <p className="mt-4 text-muted-foreground">Loading...</p>

@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
 
   if (isValidToken === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-1 sm:py-12 sm:px-4 sm:px-6 lg:px-8 w-full">
         <p>Loading...</p>
       </div>
     );
@@ -98,8 +98,8 @@ export default function ResetPasswordPage() {
 
   if (isValidToken === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-1 sm:py-12 sm:px-4 sm:px-6 lg:px-8 w-full">
+        <Card className="w-full max-w-md mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl text-center">Invalid or Expired Link</CardTitle>
           </CardHeader>
@@ -117,8 +117,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full lg:w-[40vw]">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-1 sm:py-12 sm:px-4 sm:px-6 lg:px-8 w-full">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Reset Your Password</CardTitle>
           <CardDescription className="text-center">

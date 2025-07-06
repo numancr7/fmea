@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 
 export default function ForgotPasswordVerifyPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full lg:w-[40vw]">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-1 sm:py-12 sm:px-4 sm:px-6 lg:px-8 w-full">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-center">Check Your Email</CardTitle>
           <CardDescription className="text-center">

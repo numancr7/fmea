@@ -37,15 +37,50 @@ export default function UsersPage() {
   // Fetch users and teams
   const fetchUsers = async () => {
     setLoading(true);
-    const res = await fetch('/api/users');
-    const data: User[] = await res.json();
-    setUsers(data);
-    setLoading(false);
+    try {
+      const res = await fetch('/api/users');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else if (data && Array.isArray(data.users)) {
+        setUsers(data.users);
+      } else {
+        console.error('Unexpected API response format:', data);
+        setUsers([]);
+        toast({ title: 'Error', description: 'Failed to load users - unexpected data format' });
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
+      toast({ title: 'Error', description: 'Failed to load users' });
+    } finally {
+      setLoading(false);
+    }
   };
   const fetchTeams = async () => {
-    const res = await fetch('/api/teams');
-    const data: Team[] = await res.json();
-    setTeams(data);
+    try {
+      const res = await fetch('/api/teams');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setTeams(data);
+      } else if (data && Array.isArray(data.teams)) {
+        setTeams(data.teams);
+      } else {
+        console.error('Unexpected API response format:', data);
+        setTeams([]);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      setTeams([]);
+    }
   };
   useEffect(() => {
     fetchUsers();
@@ -149,7 +184,11 @@ export default function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">Loading users...</TableCell>
+                </TableRow>
+              ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center">No users found</TableCell>
                 </TableRow>

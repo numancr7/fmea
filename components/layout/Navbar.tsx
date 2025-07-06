@@ -65,26 +65,26 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
   const filteredSearch = demoSearchItems.filter(item => item.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <header className="bg-primary text-primary-foreground shadow-md py-3 fixed w-full top-0 z-40">
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <header className="bg-primary text-primary-foreground shadow-md py-3 fixed w-full top-0 z-40 overflow-x-hidden">
+      <div className="container mx-auto px-4 flex items-center justify-between w-full max-w-full">
+        <div className="flex items-center space-x-4 min-w-0">
           {/* Sidebar toggle/close button */}
           {onMenuClick && (
             <Button
               variant="ghost"
               size="icon"
-              className="text-primary-foreground hover:bg-primary-foreground/10"
+              className="text-primary-foreground hover:bg-primary-foreground/10 flex-shrink-0"
               onClick={onMenuClick}
             >
               {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           )}
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center min-w-0">
             <span className="text-lg font-bold whitespace-nowrap">DWTask AMS - FMEA</span>
           </Link>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 min-w-0">
           {/* Search button with dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
