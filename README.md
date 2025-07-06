@@ -1,22 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FMEA Management System
+
+A comprehensive Failure Mode and Effects Analysis (FMEA) management system built with Next.js, TypeScript, and MongoDB.
+
+## Features
+
+- User authentication and authorization
+- Equipment and component management
+- Failure mode analysis
+- Risk assessment and matrix
+- Task management
+- Team collaboration
+- Real-time notifications
+
+## Environment Variables
+
+For local development, create a `.env.local` file with the following variables:
+
+```env
+# Database Configuration
+MONGODB_URI=mongodb://localhost:27017/fmea
+
+# NextAuth Configuration
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+
+# Email Configuration (for password reset and verification)
+EMAIL_SERVER_HOST=smtp.gmail.com
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER=your-email@gmail.com
+EMAIL_SERVER_PASSWORD=your-app-password
+
+# Cloudinary Configuration (for file uploads)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+```
+
+## Vercel Deployment
+
+For production deployment on Vercel, set these environment variables in your Vercel dashboard:
+
+### Required Variables:
+- `MONGODB_URI` - Your MongoDB connection string
+- `NEXTAUTH_SECRET` - A secure random string for JWT signing
+- `NEXTAUTH_URL` - Your production URL (e.g., `https://your-app.vercel.app`)
+
+### Optional Variables:
+- `EMAIL_SERVER_HOST` - SMTP server for email functionality
+- `EMAIL_SERVER_PORT` - SMTP port
+- `EMAIL_SERVER_USER` - Email username
+- `EMAIL_SERVER_PASSWORD` - Email password
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` - Cloudinary cloud name
+- `CLOUDINARY_API_KEY` - Cloudinary API key
+- `CLOUDINARY_API_SECRET` - Cloudinary API secret
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Demo Credentials
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Admin: admin@example.com / password
+- User: user@example.com / password
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

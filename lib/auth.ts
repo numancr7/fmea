@@ -97,5 +97,11 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
+  // Fix for Vercel deployment
   secret: process.env.NEXTAUTH_SECRET,
+  
+  // Add proper URL configuration for production
+  ...(process.env.NEXTAUTH_URL && {
+    url: process.env.NEXTAUTH_URL,
+  }),
 };
