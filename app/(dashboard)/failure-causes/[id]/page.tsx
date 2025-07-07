@@ -45,7 +45,13 @@ const FailureCauseDetail = () => {
           </CardHeader>
           <CardContent>
             <div>
-              <span className="font-medium">Name:</span> {failureCause.name}
+              <span className="font-medium">Name:</span> {failureCause.causeName}
+            </div>
+            <div>
+              <span className="font-medium">Code:</span> {failureCause.causeCode}
+            </div>
+            <div>
+              <span className="font-medium">Description:</span> {failureCause.causeDescription}
             </div>
           </CardContent>
         </Card>

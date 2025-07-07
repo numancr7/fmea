@@ -71,8 +71,8 @@ const TaskList = () => {
           </Button>
         </Link>
       </div>
-      <div className="bg-white rounded-md shadow overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-md shadow overflow-x-auto">
+        <table className="min-w-full w-max">
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-4 py-2 text-left font-medium">Task List</th>
@@ -104,14 +104,14 @@ const TaskList = () => {
                 <td className="px-4 py-2">{item.manHour}</td>
                 <td className="px-4 py-2">{item.equipmentClassId}</td>
                 <td className="px-4 py-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Link href={`/tasks/${item.id}`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
                     <Link href={`/tasks/${item.id}/edit`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto">
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
@@ -119,7 +119,7 @@ const TaskList = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleDeleteClick(item.id)}
-                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      className="w-full sm:w-auto text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

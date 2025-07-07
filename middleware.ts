@@ -38,13 +38,13 @@ export async function middleware(req: NextRequest) {
       secureCookie: process.env.NODE_ENV === "production"
     });
 
-    if (!token) {
-      const signInUrl = new URL("/login", req.url);
-      signInUrl.searchParams.set("callbackUrl", req.url);
-      return NextResponse.redirect(signInUrl);
-    }
+  if (!token) {
+    const signInUrl = new URL("/login", req.url);
+    signInUrl.searchParams.set("callbackUrl", req.url);
+    return NextResponse.redirect(signInUrl);
+  }
 
-    return NextResponse.next();
+  return NextResponse.next();
   } catch (error) {
     console.error("Middleware error:", error);
     // On error, redirect to login

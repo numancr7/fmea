@@ -27,7 +27,6 @@ const TaskFormPage = () => {
     equipmentClassId: ''
   });
   const [loading, setLoading] = useState(false);
-  const { data: taskTypes = [] } = useSWR('/api/task-types', fetcher);
   const { data: equipmentClasses = [] } = useSWR('/api/equipment-classes', fetcher);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -63,6 +62,13 @@ const TaskFormPage = () => {
     }
   };
 
+  const taskTypes = [
+    { id: 'PM', name: 'PM' },
+    { id: 'PPM', name: 'PPM' },
+    { id: 'CM', name: 'CM' },
+    { id: 'Other', name: 'Other' },
+  ];
+
   return (
     <div className="pt-20 px-4">
       <Card className="max-w-2xl mx-auto">
@@ -94,8 +100,8 @@ const TaskFormPage = () => {
                   <SelectValue placeholder="Select task type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {taskTypes.map((type: any) => (
-                    <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                  {taskTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

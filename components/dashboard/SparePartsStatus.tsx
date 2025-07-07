@@ -4,72 +4,61 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const spareParts = [
-  { id: 1, description: 'Bearing Set', materialNo: 'SP-003', currentStock: 3, minStock: 5, status: 'approved' },
-  { id: 2, description: 'Valve Actuator', materialNo: 'SP-005', currentStock: 0, minStock: 2, status: 'pending' },
-  { id: 3, description: 'Pump Seal', materialNo: 'SP-007', currentStock: 10, minStock: 2, status: 'approved' },
-];
+interface SparePart {
+  name: string;
+  code: string;
+  currentStock: number;
+  minStock: number;
+}
 
-const SparePartsStatus = () => {
-  const statusCounts: Record<string, number> = { approved: 0, pending: 0, rejected: 0 };
-  spareParts.forEach(part => { 
-    const status = (part as any).status;
-    if (status && statusCounts.hasOwnProperty(status)) {
-      statusCounts[status]++;
-    }
-  });
-  const lowStockParts = spareParts.filter(part => part.currentStock < part.minStock);
+interface SparePartsStatusProps {
+  statusCounts: { approved: number; pending: number; rejected: number };
+  lowStock: SparePart[];
+}
 
+const SparePartsStatus: React.FC<SparePartsStatusProps> = ({ statusCounts, lowStock }) => {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle>Spare Parts Status</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-muted p-4 rounded-md">
-            <div className="text-xl font-bold">{statusCounts.approved}</div>
-            <div className="text-xs text-muted-foreground">Approved</div>
-          </div>
-          <div className="bg-muted p-4 rounded-md">
-            <div className="text-xl font-bold">{statusCounts.pending}</div>
-            <div className="text-xs text-muted-foreground">Pending</div>
-          </div>
-          <div className="bg-muted p-4 rounded-md">
-            <div className="text-xl font-bold">{statusCounts.rejected}</div>
-            <div className="text-xs text-muted-foreground">Rejected</div>
-          </div>
+    <div className="bg-white rounded-lg shadow p-4 h-full flex flex-col">
+      <h2 className="text-lg font-semibold mb-2">Spare Parts Status</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div className="bg-gray-100 rounded-lg p-4">
+          <div className="text-2xl font-bold">{statusCounts.approved}</div>
+          <div className="text-xs text-gray-500">Approved</div>
         </div>
-        {lowStockParts.length > 0 && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTitle>Low Stock Warning</AlertTitle>
-            <AlertDescription>
-              {lowStockParts.length} spare part(s) below minimum stock level
-            </AlertDescription>
-          </Alert>
-        )}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium">Low Stock Items</h4>
-          {lowStockParts.map(part => (
-            <div key={part.id} className="bg-muted p-3 rounded-md">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-sm font-medium">{part.description}</h4>
-                  <p className="text-xs text-muted-foreground">{part.materialNo}</p>
-                </div>
-                <div className="text-xs text-right">
-                  <div className="font-medium">{part.currentStock} / {part.minStock}</div>
-                  <div className="text-muted-foreground">Current / Min</div>
-                </div>
-              </div>
+        <div className="bg-gray-100 rounded-lg p-4">
+          <div className="text-2xl font-bold">{statusCounts.pending}</div>
+          <div className="text-xs text-gray-500">Pending</div>
+        </div>
+        <div className="bg-gray-100 rounded-lg p-4">
+          <div className="text-2xl font-bold">{statusCounts.rejected}</div>
+          <div className="text-xs text-gray-500">Rejected</div>
+        </div>
+      </div>
+
+      {lowStock.length > 0 && (
+        <div className="border border-red-300 bg-red-50 text-red-700 rounded p-3 mb-4">
+          <div className="font-semibold">Low Stock Warning</div>
+          <div className="text-xs">{lowStock.length} spare part(s) below minimum stock level</div>
+        </div>
+      )}
+
+      <div>
+        <div className="font-semibold text-sm mb-2">Low Stock Items</div>
+        {lowStock.map((item) => (
+          <div key={item.code} className="bg-gray-100 rounded p-3 mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="font-medium">{item.name}</div>
+              <div className="text-xs text-gray-500">{item.code}</div>
             </div>
-          ))}
-          {lowStockParts.length === 0 && (
-            <p className="text-sm text-muted-foreground">All parts at adequate stock levels</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="text-xs text-right mt-1 sm:mt-0">
+              <span className="font-semibold">{item.currentStock}</span>
+              <span className="text-gray-400"> / {item.minStock}</span>
+              <span className="ml-1 text-gray-400">Current / Min</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

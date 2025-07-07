@@ -100,7 +100,9 @@ const SparePartForm = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {equipmentList.map((eq: any) => (
-                        <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                        <SelectItem key={eq.id} value={eq.id}>
+                          {eq.equipmentDescription || eq.equipmentDescriptionFromSAP || eq.id}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

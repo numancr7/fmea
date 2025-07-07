@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Button } from "@/components/ui/button";
@@ -39,26 +39,36 @@ const EditTaskPage = () => {
     equipmentClassId: ''
   });
   const [loading, setLoading] = useState(false);
-  const { data: taskTypes = [] } = useSWR<TaskType[]>('/api/task-types', fetcher);
-  const { data: equipmentClasses = [] } = useSWR<EquipmentClass[]>('/api/equipment-classes', fetcher);
+  
+  const taskTypes = useMemo(() => [
+    { id: 'PM', name: 'PM' },
+    { id: 'PPM', name: 'PPM' },
+    { id: 'CM', name: 'CM' },
+    { id: 'Other', name: 'Other' },
+  ], []);
 
+  const { data: equipmentClasses = [] } = useSWR('/api/equipment-classes', fetcher);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (id) {
       fetch(`/api/tasks/${id}`)
         .then(res => res.json())
-        .then(data => setFormData({
-          taskList: data.taskList || '',
-          sapGTL: data.sapGTL || '',
-          mainWorkCenter: data.mainWorkCenter || '',
-          interval: data.interval || '',
-          taskType: data.taskType || '',
-          taskDescription: data.taskDescription || '',
-          numberOfPerson: data.numberOfPerson || '',
-          manHour: data.manHour || '',
-          equipmentClassId: data.equipmentClassId || ''
-        }));
+        .then(data => {
+          setFormData({
+            taskList: data.taskList || '',
+            sapGTL: data.sapGTL || '',
+            mainWorkCenter: data.mainWorkCenter || '',
+            interval: data.interval || '',
+            taskType: data.taskType || taskTypes[0].id,
+            taskDescription: data.taskDescription || '',
+            numberOfPerson: data.numberOfPerson || '',
+            manHour: data.manHour || '',
+            equipmentClassId: data.equipmentClassId || '',
+          });
+        });
     }
-  }, [id]);
+  }, [id, taskTypes]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -72,7 +82,12 @@ const EditTaskPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    if (!formData.taskList || !formData.taskType || !formData.equipmentClassId) {
+    const submitData = {
+      ...formData,
+      taskType: formData.taskType || taskTypes[0].id,
+      equipmentClassId: formData.equipmentClassId || '',
+    };
+    if (!submitData.taskList || !submitData.taskType || !submitData.equipmentClassId) {
       toast.error('Please fill all required fields');
       setLoading(false);
       return;
@@ -81,7 +96,7 @@ const EditTaskPage = () => {
       const res = await fetch(`/api/tasks/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
       if (!res.ok) throw new Error('Failed to update task');
       toast.success('Task Updated');
@@ -125,7 +140,7 @@ const EditTaskPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {taskTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -149,7 +164,7 @@ const EditTaskPage = () => {
                   <SelectValue placeholder="Select equipment class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {equipmentClasses.map((cls) => (
+                  {equipmentClasses.map((cls: any) => (
                     <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
                   ))}
                 </SelectContent>

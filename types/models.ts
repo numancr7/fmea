@@ -151,15 +151,16 @@ export interface FailureMode {
 // Spare Part
 export interface SparePart {
   id: string;
-  materialNo: string;
-  description: string;
-  proposedStock: number;
-  currentStock: number;
+  equipmentId: string;
+  materialNumber: string;
+  materialDescription: string;
+  proposeStock: number;
+  minimum: number;
+  maximum: number;
   price: number;
-  minStock: number;
-  maxStock: number;
-  status: 'approved' | 'rejected' | 'pending';
-  equipmentTypeIds: string[];
+  currency: string;
+  stockStatus: string;
+  remarks?: string;
 }
 
 // Main Product
@@ -175,10 +176,11 @@ export interface MainProduct {
 
 // Risk Matrix Cell
 export interface RiskMatrixCell {
-  severity: number;
-  probability: number;
-  level: RiskLevel;
-  count: number;
+  severity: string; // A-E
+  probability: string; // 1-5
+  label: string; // e.g., 'A1', 'B2', ...
+  color: string; // e.g., 'bg-green-700', 'bg-yellow-400', ...
+  riskLevel: string; // e.g., 'low', 'medium', 'high', 'critical'
 }
 
 // FMEA (detailed)

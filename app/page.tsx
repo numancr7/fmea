@@ -11,10 +11,12 @@ import FailureModeSummary from '@/components/dashboard/FailureModeSummary';
 import HighRiskItems from '@/components/dashboard/HighRiskItems';
 import StatCard from '@/components/dashboard/StatCard';
 import SparePartsStatus from '@/components/dashboard/SparePartsStatus';
+import useSWR from 'swr';
 
 const Dashboard = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { data, isLoading } = useSWR('/api/dashboard/summary', (url) => fetch(url).then(res => res.json()));
 
   // Show loading state while checking authentication
   if (status === "loading") {
@@ -41,18 +43,47 @@ const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Products" value="24" trend={{ value: "12", positive: true }} />
-        <StatCard title="Components" value="156" trend={{ value: "8", positive: true }} />
-        <StatCard title="Critical Failures" value="7" trend={{ value: "3", positive: false }} />
-        <StatCard title="Spare Parts" value="43" trend={{ value: "15", positive: true }} />
+        <StatCard title="Total Products" value={isLoading ? 'Loading...' : data?.totalProducts ?? 0} />
+        <StatCard title="Components" value={isLoading ? 'Loading...' : data?.totalComponents ?? 0} />
+        <StatCard title="Critical Failures" value={isLoading ? 'Loading...' : data?.totalCriticalFailures ?? 0} />
+        <StatCard title="Spare Parts" value={isLoading ? 'Loading...' : data?.totalSpareParts ?? 0} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RiskMatrix />
-        <FailureModeSummary />
+        <FailureModeSummary summary={data?.failureModesSummary || []} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SparePartsStatus />
-        <HighRiskItems />
+        <SparePartsStatus
+          statusCounts={
+            data?.sparePartsStatus && typeof data.sparePartsStatus === 'object' && !Array.isArray(data.sparePartsStatus)
+              ? {
+                  approved: data.sparePartsStatus.approved ?? 4,
+                  pending: data.sparePartsStatus.pending ?? 1,
+                  rejected: data.sparePartsStatus.rejected ?? 0,
+                }
+              : { approved: 4, pending: 1, rejected: 0 }
+          }
+          lowStock={
+            Array.isArray(data?.sparePartsStatus?.lowStock)
+              ? data.sparePartsStatus.lowStock
+              : [
+                  { name: 'Bearing Set', code: 'SP-003', currentStock: 3, minStock: 5 },
+                  { name: 'Valve Actuator', code: 'SP-005', currentStock: 0, minStock: 2 },
+                ]
+          }
+        />
+        <HighRiskItems items={
+          data?.highRiskItems && Array.isArray(data.highRiskItems) && data.highRiskItems.length > 0
+            ? data.highRiskItems
+            : [
+                { _id: '1', name: 'Stator Winding Failure', category: 'Electrical Failure', rpn: 200, type: 'failureMode', severity: 'critical' },
+                { _id: '2', name: 'Bearing Failure', category: 'Mechanical Failure', rpn: 168, type: 'failureMode', severity: 'high' },
+                { _id: '3', name: 'Impeller Failure', category: 'Mechanical Failure', rpn: 125, type: 'failureMode', severity: 'high' },
+                { _id: '4', name: 'Impeller', category: 'Rotating', riskLevel: 'high', type: 'component' },
+                { _id: '5', name: 'Bearing Assembly', category: 'Rotating', riskLevel: 'high', type: 'component' },
+                { _id: '6', name: 'Stator Winding', category: 'Electrical', riskLevel: 'critical', type: 'component' },
+              ]
+        } />
       </div>
     </div>
   );

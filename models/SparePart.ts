@@ -1,18 +1,29 @@
 import mongoose, { Schema, model, models } from 'mongoose';
-import { SparePart } from '@/types/fmea-types';
+import { v4 as uuidv4 } from 'uuid';
 
-const sparePartSchema = new Schema<SparePart>({
-  id: { type: String, required: true, unique: true },
-  materialNo: { type: String, required: true },
-  description: { type: String, required: true },
-  proposedStock: { type: Number, required: true },
-  currentStock: { type: Number, required: true },
+const sparePartSchema = new Schema({
+  id: { type: String, required: true, unique: true, default: uuidv4 },
+  equipmentId: { type: String, required: true },
+  materialNumber: { type: String, required: true },
+  materialDescription: { type: String, required: true },
+  proposeStock: { type: Number, required: true },
+  minimum: { type: Number, required: true },
+  maximum: { type: Number, required: true },
   price: { type: Number, required: true },
-  minStock: { type: Number, required: true },
-  maxStock: { type: Number, required: true },
-  status: { type: String, enum: ['approved', 'rejected', 'pending'], required: true },
-  equipmentTypeIds: [{ type: String }],
+  currency: { type: String, required: true },
+  stockStatus: { type: String, required: true },
+  remarks: { type: String, default: '' },
+}, {
+  timestamps: true,
 });
 
-const SparePartModel = models.SparePart || model<SparePart>('SparePart', sparePartSchema);
+sparePartSchema.pre('save', function(next) {
+  if (!this.isNew) return next();
+  if (!this.id) {
+    this.id = uuidv4();
+  }
+  next();
+});
+
+const SparePartModel = models.SparePart || model('SparePart', sparePartSchema);
 export default SparePartModel; 

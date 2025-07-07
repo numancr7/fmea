@@ -61,7 +61,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-1 sm:p-8 max-w-none overflow-x-hidden w-full">
         <div className="w-full h-full flex items-center justify-center max-w-full">
-          {children}
+        {children}
         </div>
       </div>
     );

@@ -15,6 +15,8 @@ import type { Equipment } from '@/types/models';
 interface EquipmentOption {
   id: string;
   name: string;
+  equipmentDescription?: string;
+  equipmentDescriptionFromSAP?: string;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -120,7 +122,9 @@ const EditSparePartPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {equipmentList.map((eq) => (
-                      <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                      <SelectItem key={eq.id} value={eq.id}>
+                        {eq.equipmentDescription || eq.equipmentDescriptionFromSAP || eq.id}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

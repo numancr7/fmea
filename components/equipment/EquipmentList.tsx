@@ -48,6 +48,11 @@ const EquipmentList: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
+  // Defensive: always use arrays
+  const safeEquipment = Array.isArray(equipment) ? equipment : [];
+  const safeEquipmentTypes = Array.isArray(equipmentTypes) ? equipmentTypes : [];
+  const safeEquipmentClasses = Array.isArray(equipmentClasses) ? equipmentClasses : [];
+
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
     setShowDeleteDialog(true);
@@ -63,11 +68,11 @@ const EquipmentList: React.FC = () => {
   };
 
   const getEquipmentClassName = (id: string) => {
-    return equipmentClasses.find((c: Record<string, unknown>) => c.id === id)?.name || "N/A";
+    return safeEquipmentClasses.find((c: Record<string, unknown>) => c.id === id)?.name || "N/A";
   };
 
   const getEquipmentTypeName = (id: string) => {
-    return equipmentTypes.find((t: Record<string, unknown>) => t.id === id)?.name || "N/A";
+    return safeEquipmentTypes.find((t: Record<string, unknown>) => t.id === id)?.name || "N/A";
   };
 
   if (loadingTypes || loadingClasses) {
@@ -106,7 +111,7 @@ const EquipmentList: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {equipment.map((item: Record<string, string | number | boolean | null | undefined>) => {
+              {safeEquipment.map((item: Record<string, string | number | boolean | null | undefined>) => {
                 return (
                   <TableRow key={item.id as string}>
                     <TableCell className="font-medium">{item.equipmentNoFromSAP as string}</TableCell>

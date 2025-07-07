@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import SparePart from '@/models/SparePart';
 import { requireRole } from '@/lib/requireRole';
+import { v4 as uuidv4 } from 'uuid';
 
 // GET: List all spare parts
 export async function GET() {
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest) {
   if (roleCheck) return roleCheck;
   await connectToDatabase();
   const data = await req.json();
+  // Generate id if not provided
+  if (!data.id) data.id = uuidv4();
   try {
     const exists = await SparePart.findOne({ id: data.id });
     if (exists) {

@@ -2,6 +2,33 @@
 
 import React from 'react';
 
+// Map severity/probability to matrix row/col
+const severityMap = ['A', 'B', 'C', 'D', 'E']; // 0-4
+const probabilityMap = ['1', '2', '3', '4', '5']; // 0-4
+
+const cellColor = (count: number) => {
+  if (count >= 5) return 'bg-red-600 text-white';
+  if (count >= 3) return 'bg-yellow-500';
+  if (count >= 1) return 'bg-yellow-400';
+  return 'bg-green-700 text-white';
+};
+
+const defaultMatrix = [
+  ['E1', 'E2', 'E3', 'E4', 'E5'],
+  ['D1', 'D2', 'D3', 'D4', 'D5'],
+  ['C1', 'C2', 'C3', 'C4', 'C5'],
+  ['B1', 'B2', 'B3', 'B4', 'B5'],
+  ['A1', 'A2', 'A3', 'A4', 'A5'],
+];
+
+const defaultColors = [
+  ['bg-yellow-400', 'bg-yellow-400', 'bg-orange-400', 'bg-red-600 text-white', 'bg-red-800 text-white'],
+  ['bg-green-700 text-white', 'bg-yellow-400', 'bg-orange-400', 'bg-red-600 text-white', 'bg-red-800 text-white'],
+  ['bg-green-700 text-white', 'bg-green-700 text-white', 'bg-yellow-400', 'bg-orange-400', 'bg-red-600 text-white'],
+  ['bg-green-700 text-white', 'bg-green-700 text-white', 'bg-green-700 text-white', 'bg-yellow-400', 'bg-orange-400'],
+  ['bg-green-700 text-white', 'bg-green-700 text-white', 'bg-green-700 text-white', 'bg-green-700 text-white', 'bg-green-700 text-white'],
+];
+
 const RiskMatrix = () => {
   return (
     <div className="overflow-x-auto">

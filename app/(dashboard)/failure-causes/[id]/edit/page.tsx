@@ -19,19 +19,23 @@ const FailureCauseEdit = () => {
   const id = params?.id as string;
   const { data: failureCause, isLoading } = useSWR(id ? `/api/failure-causes/${id}` : null, fetcher);
   const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (failureCause) {
-      setName(failureCause.name || '');
+      setName(failureCause.causeName || '');
+      setCode(failureCause.causeCode || '');
+      setDescription(failureCause.causeDescription || '');
     }
   }, [failureCause]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    if (!name) {
-      toast({ title: 'Error', description: 'Cause name is required' });
+    if (!name || !code) {
+      toast({ title: 'Error', description: 'Cause name and cause code are required' });
       setLoading(false);
       return;
     }
@@ -39,7 +43,7 @@ const FailureCauseEdit = () => {
       const res = await fetch(`/api/failure-causes/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ causeName: name, causeCode: code, causeDescription: description }),
       });
       if (!res.ok) throw new Error('Failed to update failure cause');
       toast({ title: 'Success', description: 'Failure Cause Updated' });
@@ -79,6 +83,25 @@ const FailureCauseEdit = () => {
                   onChange={e => setName(e.target.value)}
                   required
                   placeholder="Enter cause name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="code">Cause Code *</Label>
+                <Input
+                  id="code"
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                  required
+                  placeholder="Enter cause code (e.g. HT001)"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Enter description"
                 />
               </div>
             </CardContent>

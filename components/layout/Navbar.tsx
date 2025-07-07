@@ -80,7 +80,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
             </Button>
           )}
           <Link href="/" className="flex items-center min-w-0">
-            <span className="text-lg font-bold whitespace-nowrap">DWTask AMS - FMEA</span>
+            <span className="text-lg font-bold whitespace-nowrap">
+              <span className="hidden sm:inline">DWTask AMS - </span>FMEA
+            </span>
           </Link>
         </div>
         
@@ -91,7 +93,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-primary-foreground hover:bg-primary-foreground/10 hidden sm:inline-flex"
+                className="text-primary-foreground hover:bg-primary-foreground/10"
               >
                 <Search className="h-5 w-5" />
               </Button>
@@ -119,7 +121,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isSidebarOpen }) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-primary-foreground hover:bg-primary-foreground/10 hidden sm:inline-flex"
+                className="text-primary-foreground hover:bg-primary-foreground/10"
               >
                 <Bell className="h-5 w-5" />
               </Button>

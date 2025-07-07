@@ -62,7 +62,8 @@ const SparePartList: React.FC = () => {
   };
 
   const getEquipmentName = (id: string) => {
-    return equipmentList.find((e: any) => e.id === id)?.name || 'Unknown Equipment';
+    if (!id) return 'Unknown Equipment';
+    return equipmentList.find((e: any) => e.id === id)?.equipmentDescription || 'Unknown Equipment';
   };
 
   return (
@@ -92,22 +93,22 @@ const SparePartList: React.FC = () => {
           <tbody>
             {spareParts.map((part: SparePart) => (
               <tr key={part.id} className="border-b">
-                <td className="px-4 py-2">{getEquipmentName(part.equipmentTypeIds[0])}</td>
-                <td className="px-4 py-2 font-medium">{part.materialNo}</td>
-                <td className="px-4 py-2">{part.description}</td>
+                <td className="px-4 py-2">{getEquipmentName(part.equipmentId)}</td>
+                <td className="px-4 py-2 font-medium">{part.materialNumber}</td>
+                <td className="px-4 py-2">{part.materialDescription}</td>
                 <td className="px-4 py-2">
-                  {part.proposedStock < part.minStock ? (
+                  {Number(part.proposeStock) < Number(part.minimum) ? (
                     <span className="text-red-600 font-medium">
-                      {part.proposedStock}/{part.minStock}/{part.maxStock}
+                      {part.proposeStock}/{part.minimum}/{part.maximum}
                     </span>
                   ) : (
                     <span>
-                      {part.proposedStock}/{part.minStock}/{part.maxStock}
+                      {part.proposeStock}/{part.minimum}/{part.maximum}
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-2">RM {part.price}</td>
-                <td className="px-4 py-2">{getStatusBadge(part.status)}</td>
+                <td className="px-4 py-2">{part.currency} {part.price}</td>
+                <td className="px-4 py-2">{getStatusBadge(part.stockStatus)}</td>
                 <td className="px-4 py-2">
                   <div className="flex gap-2">
                     <Link href={`/spare-parts/${part.id}`}>

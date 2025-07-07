@@ -38,14 +38,14 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/users');
+    const res = await fetch('/api/users');
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
       // Ensure data is an array
       if (Array.isArray(data)) {
-        setUsers(data);
+    setUsers(data);
       } else if (data && Array.isArray(data.users)) {
         setUsers(data.users);
       } else {
@@ -58,19 +58,19 @@ export default function UsersPage() {
       setUsers([]);
       toast({ title: 'Error', description: 'Failed to load users' });
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   };
   const fetchTeams = async () => {
     try {
-      const res = await fetch('/api/teams');
+    const res = await fetch('/api/teams');
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
       // Ensure data is an array
       if (Array.isArray(data)) {
-        setTeams(data);
+    setTeams(data);
       } else if (data && Array.isArray(data.teams)) {
         setTeams(data.teams);
       } else {

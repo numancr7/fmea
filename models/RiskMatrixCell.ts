@@ -1,12 +1,12 @@
 import mongoose, { Schema, model, models } from 'mongoose';
-import { RiskMatrixCell } from '@/types/models';
 
-const riskMatrixCellSchema = new Schema<RiskMatrixCell>({
-  severity: { type: Number, required: true },
-  probability: { type: Number, required: true },
-  level: { type: String, required: true },
-  count: { type: Number, required: true },
+const riskMatrixCellSchema = new Schema({
+  severity: { type: String, required: true }, // A-E
+  probability: { type: String, required: true }, // 1-5
+  label: { type: String, required: true }, // e.g., 'A1', 'B2', ...
+  color: { type: String, required: true }, // e.g., 'bg-green-700', 'bg-yellow-400', ...
+  riskLevel: { type: String, required: true }, // e.g., 'low', 'medium', 'high', 'critical'
 });
 
-const RiskMatrixCellModel = models.RiskMatrixCell || model<RiskMatrixCell>('RiskMatrixCell', riskMatrixCellSchema);
+const RiskMatrixCellModel = models.RiskMatrixCell || model('RiskMatrixCell', riskMatrixCellSchema);
 export default RiskMatrixCellModel; 

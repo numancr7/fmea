@@ -13,13 +13,15 @@ import { ArrowLeft } from 'lucide-react';
 const FailureCauseCreate = () => {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    if (!name) {
-      toast({ title: 'Error', description: 'Cause name is required' });
+    if (!name || !code) {
+      toast({ title: 'Error', description: 'Cause name and cause code are required' });
       setLoading(false);
       return;
     }
@@ -27,13 +29,16 @@ const FailureCauseCreate = () => {
       const res = await fetch('/api/failure-causes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ causeName: name, causeCode: code, causeDescription: description }),
       });
-      if (!res.ok) throw new Error('Failed to create failure cause');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to create failure cause');
+      }
       toast({ title: 'Success', description: 'Failure Cause Created' });
       router.push('/failure-causes');
-    } catch {
-      toast({ title: 'Error', description: 'Failed to create failure cause' });
+    } catch (error) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create failure cause' });
     } finally {
       setLoading(false);
     }
@@ -65,6 +70,25 @@ const FailureCauseCreate = () => {
                   onChange={e => setName(e.target.value)}
                   required
                   placeholder="Enter cause name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="code">Cause Code *</Label>
+                <Input
+                  id="code"
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                  required
+                  placeholder="Enter cause code (e.g. HT001)"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Enter description"
                 />
               </div>
             </CardContent>
